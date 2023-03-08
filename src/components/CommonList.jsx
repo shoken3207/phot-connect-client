@@ -9,9 +9,6 @@ import styled from 'styled-components';
 import { Button } from '@mui/material';
 const PersonList = memo(({ listData, pagePath, onClick, friendAdd }) => {
   const { userData } = useUserData();
-  console.log('listData: ', listData);
-  console.log('friends', userData);
-  console.log();
   return (
     <SCommonList>
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>

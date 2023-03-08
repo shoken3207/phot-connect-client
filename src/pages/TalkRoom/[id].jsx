@@ -1,10 +1,12 @@
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useUserData } from '../../provider/UserDataProvider';
-import Message from '../../components/Message';
 import MessageList from '../../components/MessageList';
 import axios from 'axios';
 import SendTalk from '../../components/SendTalk';
+import useFetchData from '../../hooks/useFetchData';
+import styled from 'styled-components';
+import io from 'socket.io-client';
 
 const TalkRoom = memo(() => {
   const router = useRouter();
@@ -12,6 +14,8 @@ const TalkRoom = memo(() => {
   const { userData } = useUserData();
   const [talkRoomMembers, setTalkRoomMembers] = useState([]);
   const [allTalkData, setAllTalkData] = useState([]);
+  const { fetchAllTalkData } = useFetchData();
+  const socket = io('http://localhost:5000');
 
   //   トークルーム内のメンバーを取得
   const fetchTalkRoomMembers = async () => {
@@ -21,49 +25,39 @@ const TalkRoom = memo(() => {
     setTalkRoomMembers(response.data);
   };
   // トークルーム内の全てのトークを取得
-  const fetchAllTalkData = async () => {
-    const response = await axios.get(
-      `http://localhost:5000/api/talk/${talkRoomId}/all`
-    );
-    setAllTalkData(response.data);
-  };
+  const fetchAllTalk = useCallback(async (talkRoomId) => {
+    const response = await fetchAllTalkData(talkRoomId);
+    setAllTalkData(response);
+  }, []);
   useEffect(() => {
     fetchTalkRoomMembers();
-    fetchAllTalkData();
+    fetchAllTalk(talkRoomId);
+
+    socket.on('received_message', (data) => {
+      fetchAllTalk(data.talkRoomId);
+    });
+
+    return () => {
+      socket.close();
+    };
   }, []);
 
   return (
-    <div>
+    <SChat>
       <MessageList allTalkData={allTalkData} />
-      {/* <Message
-        senderIconImage='https://source.unsplash.com/random'
-        image='https://source.unsplash.com/random'
-        message='おはよう'
-        createdAt='2023-02-23'
-        isSender={false}
-      />
-      <Message
-        senderIconImage='https://source.unsplash.com/random'
-        image='https://source.unsplash.com/random'
-        message='こんにちは'
-        createdAt='2023-02-23'
-        isSender={true}
-      />
-      <Message
-        senderIconImage='https://source.unsplash.com/random'
-        image='https://source.unsplash.com/random'
-        message='こんばんは'
-        createdAt='2023-02-23'
-        isSender={false}
-      /> */}
       <SendTalk
         userId={userData._id}
         talkRoomId={talkRoomId}
         iconImage={userData.iconImage}
         fetchAllTalkData={fetchAllTalkData}
       />
-    </div>
+    </SChat>
   );
 });
 
 export default TalkRoom;
+
+const SChat = styled.div`
+  max-width: 500px;
+  margin: 0 auto;
+`;

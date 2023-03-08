@@ -6,7 +6,6 @@ import ListItem from '@mui/material/ListItem';
 const ChipList = ({ chipTexts, setChipTexts }) => {
   const removeChipText = (e, i) => {
     e.preventDefault();
-    console.log(i);
     const copyChipTexts = [...chipTexts];
     copyChipTexts.splice(i, 1);
     setChipTexts(copyChipTexts);

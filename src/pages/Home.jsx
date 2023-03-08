@@ -11,7 +11,6 @@ const Home = () => {
   const fetchFunc = async () => {
     const response = await fetchHomePlans(userData._id);
     setPlans(response);
-    console.log(await fetchHomePlans(userData._id));
   };
   useEffect(() => {
     fetchFunc();

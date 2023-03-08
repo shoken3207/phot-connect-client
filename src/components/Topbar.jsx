@@ -7,6 +7,7 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Avatar } from '@mui/material';
 import { useUserData } from '../provider/UserDataProvider';
+import LinkWrap from './LinkWrap';
 const TopBar = memo(({ setIsOpen }) => {
   const { userData } = useUserData();
   return (
@@ -26,7 +27,9 @@ const TopBar = memo(({ setIsOpen }) => {
           <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
             {userData.username}
           </Typography>
-          <Avatar src={userData.iconImage} />
+          <LinkWrap href={`/Profile/${userData._id}`}>
+            <Avatar src={userData.iconImage} />
+          </LinkWrap>
         </>
       </Toolbar>
     </AppBar>

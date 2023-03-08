@@ -1,8 +1,7 @@
-import React, { forwardRef, memo, useEffect } from 'react';
+import React, { forwardRef, memo } from 'react';
 import LinkWrap from './LinkWrap';
 import styled from 'styled-components';
-import { convertToDispDate } from '../utils/dateUtils';
-// import { format } from 'timeago.js';
+import { getChatDate } from '../utils/dateUtils';
 
 const Message = memo(
   forwardRef(
@@ -10,21 +9,17 @@ const Message = memo(
       { senderIconImage, senderId, message, image, isSender, createdAt },
       ref
     ) => {
-      // const nowDate = new Date();
-      // const convertedCreatedAt = convertToDispDate(nowDate.toISOString());
-      // console.log('convertedCreatedAt: ', convertedCreatedAt);
-      console.log('ref: ', ref);
       return (
         <SMessageWrap isSender={isSender} ref={ref}>
-          <SMessageIcon isSender={isSender}>
-            <LinkWrap href='/profile'>
+          <SMessageIcon isSender={isSender} senderIconImage={senderIconImage}>
+            <LinkWrap href={`/Profile/${senderId}`}>
               <img
                 src={senderIconImage || '/images/noAvatar.png'}
                 alt='avatarImage'
               />
             </LinkWrap>
           </SMessageIcon>
-          <SMessageContent>
+          <SMessageContent isSender={isSender} image={image}>
             <SMessage
               message={message}
               isSender={isSender}
@@ -33,7 +28,7 @@ const Message = memo(
             <SImage image={image}>
               <img src={image} />
             </SImage>
-            <SSendAt isSender={isSender}>{createdAt}</SSendAt>
+            <SSendAt isSender={isSender}>{getChatDate(createdAt)}</SSendAt>
           </SMessageContent>
         </SMessageWrap>
       );
@@ -47,7 +42,6 @@ const SMessageWrap = styled.div`
   width: 100%;
   display: flex;
   align-items: flex-start;
-  /* overflow: hidden; */
   height: auto;
   column-gap: 1rem;
   flex-direction: ${(props) => (props.isSender ? 'row-reverse' : 'row')};
@@ -56,6 +50,7 @@ const SMessageWrap = styled.div`
 
 const SMessageIcon = styled.div`
   display: ${(props) => (props.isSender ? 'none' : 'block')};
+  opacity: ${(props) => (props.senderIconImage === '' ? '0' : '1')};
   > a img {
     width: 2.3rem;
     height: 2.3rem;
@@ -68,13 +63,14 @@ const SMessageContent = styled.div`
   display: flex;
   flex-direction: column;
   row-gap: 0.5rem;
-  width: fit-content;
-  max-width: 500px;
+  width: ${(props) => (props.image === '' ? 'fit-content' : '55%')};
+  max-width: 450px;
   position: relative;
+  align-items: ${(props) => (props.isSender ? 'flex-end' : 'flex-start')};
 `;
 
 const SMessage = styled.div`
-  width: 100%;
+  width: fit-content;
   min-width: 3.5rem;
   font-size: 0.9rem;
   border-radius: 15px;
@@ -82,7 +78,7 @@ const SMessage = styled.div`
   height: auto;
   word-break: break-word;
   display: ${(props) => (props.message ? 'block' : 'none')};
-  background-color: ${(props) => (props.isSender ? 'gray' : 'purple')};
+  background-color: ${(props) => (props.isSender ? '#9a979c' : '#ad45de')};
   color: ${(props) => (props.isSender ? 'black' : 'white')};
 `;
 
@@ -103,5 +99,5 @@ const SSendAt = styled.p`
   left: ${(props) => props.isSender && 0};
   right: ${(props) => !props.isSender && 0};
   transform: ${(props) =>
-    props.isSender ? 'translateX(-110%)' : 'translateX(110%)'};
+    props.isSender ? 'translateX(-120%)' : 'translateX(120%)'};
 `;

@@ -10,6 +10,13 @@ const useFetchData = () => {
     return response.data;
   };
 
+  const fetchAllTalkData = useCallback(async (talkRoomId) => {
+    const response = await axios.get(
+      `http://localhost:5000/api/talk/${talkRoomId}/all`
+    );
+    return response.data;
+  }, []);
+
   const fetchHomePlans = async (userId) => {
     const response = await axios.get(
       `http://localhost:5000/api/plan/${userId}/home`
@@ -36,6 +43,7 @@ const useFetchData = () => {
 
   return {
     fetchUserData,
+    fetchAllTalkData,
     fetchHomePlans,
     fetchCreatePlans,
     fetchPrefecturePlans,

@@ -17,6 +17,7 @@ import { useUserData } from '../provider/UserDataProvider';
 import { useRouter } from 'next/router';
 import useFetchData from '../hooks/useFetchData';
 import useUpdatePlan from '../hooks/useUpdatePlan';
+import { getPlanDate } from '../utils/dateUtils';
 
 const PlanBox = ({
   planId,
@@ -99,7 +100,7 @@ const PlanBox = ({
               撮影場所: <span>{place}</span>
             </p>
             <p>
-              日時: <span>{date}</span>
+              日時: <span>{getPlanDate(date)}</span>
             </p>
           </div>
           <div>
@@ -113,7 +114,7 @@ const PlanBox = ({
         </SFrontFooter>
       </SFront>
       <SBack onClick={() => setIsFront((prev) => !prev)}>
-        <SBackContents isFront={isFront}>
+        <SBackContents isFront={isFront} chipTexts={chipTexts} desc={desc}>
           <h2>{title}</h2>
           <p dangerouslySetInnerHTML={{ __html: desc }}></p>
           <div>
@@ -134,14 +135,15 @@ const PlanBox = ({
             ) : participants.includes(userData._id) ? (
               <CommonButton
                 startIcon={<GroupRemoveIcon />}
-                text='プランから降りる'
+                text='降りる'
                 onClick={(e) => exceptPlan(e)}
+                color='error'
               />
             ) : (
               <CommonButton
                 startIcon={<GroupAddIcon />}
                 onClick={(e) => participationPlan(e)}
-                text='プランに参加'
+                text='参加する'
               />
             )}
 
@@ -158,14 +160,7 @@ const PlanBox = ({
               text='チャット'
             />
           </div>
-          <div>
-            <h3>参加者: {participants.length}人</h3>
-            <CommonButton
-              onClick={() => setIsFront((prev) => !prev)}
-              variant=''
-              startIcon={<LoopIcon />}
-            />
-          </div>
+          <h3>参加者: {participants.length}人</h3>
         </SBackContents>
       </SBack>
     </SPlanBox>
@@ -178,11 +173,8 @@ const SPlanBox = styled.div`
   font-family: 'Poppins', sans-serif;
   margin-top: 10rem;
   width: 90%;
-  max-width: 320px;
-  height: 400px;
-  min-width: 350px;
-  /* min-height: 320px;
-max-height: 400px; */
+  max-width: 300px;
+  height: 340px;
   position: relative;
   overflow: hidden;
   > div {
@@ -229,15 +221,14 @@ const SFront = styled.div`
 `;
 
 const SFrontHeader = styled.div`
-  padding: 0.4rem 0.5rem;
-  height: 15%;
-  min-height: 3.8rem;
+  padding: 0.3rem 0.4rem;
+  height: 13%;
   display: flex;
   align-items: center;
-  column-gap: 1rem;
+  column-gap: 1.2rem;
   > a div {
-    width: 3rem;
-    height: 3rem;
+    width: 2.4rem;
+    height: 2.4rem;
     img {
       width: 100%;
       height: 100%;
@@ -252,11 +243,11 @@ const SFrontHeader = styled.div`
     align-items: flex-start;
     justify-content: center;
     h3 {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       font-weight: 700;
     }
     p {
-      font-size: 0.7rem;
+      font-size: 0.6rem;
       color: #8f8e8e;
     }
   }
@@ -292,7 +283,6 @@ const SFrontFooter = styled.div`
     &:nth-of-type(2) {
       display: flex;
       align-items: center;
-      /* column-gap: 0.5rem; */
     }
   }
 `;
@@ -302,12 +292,12 @@ const SBack = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  pointer-events: none;
   cursor: pointer;
 `;
 
 const SBackContents = styled.div`
   padding: 1rem;
+  /* width: 90%; */
   background-color: rgba(255, 255, 255, 0.8);
   display: flex;
   flex-direction: column;
@@ -321,12 +311,12 @@ const SBackContents = styled.div`
 
   > div {
     &:nth-of-type(1) {
-      width: 90%;
-      margin: 0 auto;
-      justify-content: space-between;
+      /* justify-content: space-between; */
+      column-gap: 0.5rem;
       display: flex;
       flex-wrap: wrap;
       row-gap: 0.4rem;
+      display: ${(props) => props.chipTexts.length === 0 && 'none'};
     }
 
     &:nth-of-type(2) {
@@ -335,25 +325,20 @@ const SBackContents = styled.div`
       column-gap: 1rem;
       justify-content: center;
     }
-    &:nth-of-type(3) {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      column-gap: 1rem;
-
-      > h3 {
-        text-align: center;
-      }
-    }
   }
 
+  > h3 {
+    text-align: center;
+  }
   > h2 {
-    font-size: 1.4rem;
+    /* text-align: center; */
+    font-size: 1.3rem;
   }
 
   > p {
     font-size: 0.8rem;
     color: #373636;
+    display: ${(props) => (props.desc === '' ? 'none' : 'block')};
   }
 `;
 
