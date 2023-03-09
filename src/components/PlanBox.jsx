@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { Pagination, Navigation } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -36,12 +36,33 @@ const PlanBox = ({
   fetchType,
   fetchWord,
 }) => {
+  const [readMore, setReadMore] = useState(false);
   const [isFront, setIsFront] = useState(true);
+  const [descHeight, setDescHeight] = useState(null);
+  const [planBackHeight, setPlanBackHeight] = useState(null);
+  const planDescRef = useRef(null);
+  const planBackRef = useRef(null);
   const { userData } = useUserData();
   const { fetchHomePlans, fetchCreatePlans, fetchPrefecturePlans } =
     useFetchData();
   const { participation, except } = useUpdatePlan();
   const router = useRouter();
+  useEffect(() => {
+    setDescHeight(planDescRef.current.scrollHeight);
+  }, []);
+  useEffect(() => {
+    if (readMore) {
+      setPlanBackHeight(planBackRef.current.offsetHeight);
+    } else {
+      setPlanBackHeight(null);
+    }
+  }, [readMore]);
+  useEffect(() => {
+    if (isFront) {
+      setPlanBackHeight(null);
+      setReadMore(false);
+    }
+  }, [isFront]);
   const fetchFunc = async () => {
     let response;
     if (fetchType === 'home') {
@@ -65,8 +86,18 @@ const PlanBox = ({
     await except(planId, talkRoomId, userData._id);
     await fetchFunc();
   };
+  const readMoreDesc = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setReadMore((prev) => !prev);
+  };
   return (
-    <SPlanBox isFront={isFront}>
+    <SPlanBox
+      isFront={isFront}
+      readMore={readMore}
+      planBackHeight={planBackHeight}
+      onClick={(e) => console.log(e.target.scrollHeight)}
+    >
       <SFront>
         <SFrontHeader>
           <LinkWrap href={`/Profile/${organizerId}`}>
@@ -113,10 +144,13 @@ const PlanBox = ({
           </div>
         </SFrontFooter>
       </SFront>
-      <SBack onClick={() => setIsFront((prev) => !prev)}>
+      <SBack ref={planBackRef} onClick={() => setIsFront((prev) => !prev)}>
         <SBackContents isFront={isFront} chipTexts={chipTexts} desc={desc}>
           <h2>{title}</h2>
-          <p dangerouslySetInnerHTML={{ __html: desc }}></p>
+          <SPlanDesc readMore={readMore} descHeight={descHeight}>
+            <p ref={planDescRef} dangerouslySetInnerHTML={{ __html: desc }}></p>
+            <div onClick={(e) => readMoreDesc(e)}>続きを見る</div>
+          </SPlanDesc>
           <div>
             {chipTexts.map((chipText) => (
               <Chip key={chipText} label={chipText} />
@@ -173,9 +207,11 @@ const SPlanBox = styled.div`
   font-family: 'Poppins', sans-serif;
   margin-top: 10rem;
   width: 90%;
-  max-width: 300px;
-  height: 340px;
   position: relative;
+  max-width: 300px;
+  min-height: 340px;
+  height: ${(props) =>
+    props.readMore ? props.planBackHeight + 'px' : '340px'};
   overflow: hidden;
   > div {
     width: calc(100% - 9px);
@@ -184,20 +220,16 @@ const SPlanBox = styled.div`
     box-shadow: 9px 8px 14px -10px #777777;
     border-radius: 10px;
     transition: all 0.4s cubic-bezier(0.12, 0, 0.39, 0);
+    position: absolute;
+    top: 0;
+    left: 0;
     &:nth-of-type(1) {
-      position: absolute;
-      top: 0;
-      left: 0;
-      transform: ${(props) =>
-        props.isFront ? 'rotateX(0deg)' : 'rotateX(0deg)'};
     }
     &:nth-of-type(2) {
-      position: absolute;
-      top: 0;
-      left: 0;
       z-index: 2;
-      transform: ${(props) => (props.isFront ? 'translateY(-120%)' : 'none')};
+      transform: ${(props) => (props.isFront ? 'translateY(-110%)' : 'none')};
       pointer-events: ${(props) => (props.isFront ? 'none' : 'auto')};
+      height: ${(props) => (props.readMore ? 'auto' : '100%')};
     }
   }
 `;
@@ -297,7 +329,6 @@ const SBack = styled.div`
 
 const SBackContents = styled.div`
   padding: 1rem;
-  /* width: 90%; */
   background-color: rgba(255, 255, 255, 0.8);
   display: flex;
   flex-direction: column;
@@ -310,8 +341,7 @@ const SBackContents = styled.div`
   opacity: ${(props) => (props.isFront ? 0 : 1)};
 
   > div {
-    &:nth-of-type(1) {
-      /* justify-content: space-between; */
+    &:nth-of-type(2) {
       column-gap: 0.5rem;
       display: flex;
       flex-wrap: wrap;
@@ -319,7 +349,7 @@ const SBackContents = styled.div`
       display: ${(props) => props.chipTexts.length === 0 && 'none'};
     }
 
-    &:nth-of-type(2) {
+    &:nth-of-type(3) {
       display: flex;
       align-items: center;
       column-gap: 1rem;
@@ -331,14 +361,27 @@ const SBackContents = styled.div`
     text-align: center;
   }
   > h2 {
-    /* text-align: center; */
     font-size: 1.3rem;
   }
+`;
+
+const SPlanDesc = styled.div`
+  width: 100%;
 
   > p {
     font-size: 0.8rem;
     color: #373636;
     display: ${(props) => (props.desc === '' ? 'none' : 'block')};
+    height: ${(props) => (props.readMore ? 'auto' : '2.8rem')};
+    overflow: hidden;
+  }
+
+  > div {
+    display: ${(props) => (props.descHeight > 48 ? 'block' : 'none')};
+    cursor: pointer;
+    text-align: right;
+    font-size: 0.7rem;
+    color: gray;
   }
 `;
 
