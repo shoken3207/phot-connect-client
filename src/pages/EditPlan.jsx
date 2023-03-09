@@ -151,6 +151,7 @@ const EditPlan = memo(() => {
     <SEditPlan>
       <h2>プラン情報を編集</h2>
       <TextField
+        variant='standard'
         id='title'
         label='タイトルを入力'
         value={title}
@@ -158,6 +159,7 @@ const EditPlan = memo(() => {
         onChange={(e) => handleChange(e, setTitle)}
       />
       <TextField
+        variant='standard'
         id='place'
         label='撮影場所を入力'
         value={place}
@@ -166,6 +168,7 @@ const EditPlan = memo(() => {
       />
 
       <TextField
+        variant='standard'
         id='desc'
         label='紹介文を入力'
         fullWidth
@@ -175,6 +178,7 @@ const EditPlan = memo(() => {
         defaultChecked
       />
       <TextField
+        variant='standard'
         id='limit'
         label='制限人数を入力'
         fullWidth
@@ -189,17 +193,19 @@ const EditPlan = memo(() => {
           inputFormat='yyyy/MM/dd'
           onChange={changeDate}
           value={date}
-          renderInput={(params) => <TextField {...params} fullWidth />}
+          renderInput={(params) => (
+            <TextField variant='standard' {...params} fullWidth />
+          )}
         />
       </LocalizationProvider>
       <SelectPrefecture prefecture={prefecture} setPrefecture={setPrefecture} />
       <SAddChipText>
         <TextField
+          variant='standard'
           id='chipText'
           label='チップテキストを入力'
           fullWidth
           multiline
-          variant='standard'
           onChange={(e) => handleChange(e, setChipText)}
           value={chipText}
         />

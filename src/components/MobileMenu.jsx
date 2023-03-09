@@ -32,6 +32,8 @@ export default function MobileMenu({ isOpen, setIsOpen }) {
     { text: 'プロフィール', icon: <DriveEtaIcon />, path: '/Profile/1' },
     { text: 'テスト', icon: <DriveEtaIcon />, path: '/test' },
     { text: '検索', icon: <DriveEtaIcon />, path: '/Search' },
+    { text: 'サインアップ', icon: <DriveEtaIcon />, path: '/SignUp' },
+    { text: 'サインイン', icon: <DriveEtaIcon />, path: '/SignIn' },
   ];
   const toggleDrawer = (open) => (event) => {
     if (
