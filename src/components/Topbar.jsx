@@ -22,7 +22,7 @@ import CommonDialog from './CommonDialog';
 import PlanList from './PlanList';
 import useFetchData from '../hooks/useFetchData';
 import { MAX_LOAD_PLAN_COUNT } from '../const';
-const TopBar = memo(({ setIsOpen }) => {
+const TopBar = memo(function topBar({ setIsOpen }) {
   const router = useRouter();
   const { userData, setUserData } = useUserData();
   const [dialogIsOpen, setDialogIsOpen] = useState(false);

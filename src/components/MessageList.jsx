@@ -4,106 +4,110 @@ import { useUserData } from '../provider/UserDataProvider';
 import { getChatCompereDate, getChatDispDate } from '../utils/dateUtils';
 import Message from './Message';
 import { MAX_LOAD_TALK_COUNT } from '../const';
-const MessageBox = memo(
-  ({ talks, setTalksLoadCount, setTalks, talkRoom, fetchTalks }) => {
-    const { userData } = useUserData();
-    const lastMessageRef = useRef(null);
-    const topMessageRef = useRef(null);
-    const chatContainerRef = useRef(null);
-    const isLastMessage = (index) => {
-      return index + 1 === talks.length;
-    };
+const MessageBox = memo(function messageBox({
+  talks,
+  setTalksLoadCount,
+  setTalks,
+  talkRoom,
+  fetchTalks,
+}) {
+  const { userData } = useUserData();
+  const lastMessageRef = useRef(null);
+  const topMessageRef = useRef(null);
+  const chatContainerRef = useRef(null);
+  const isLastMessage = (index) => {
+    return index + 1 === talks.length;
+  };
 
-    const isFunc = (index) => {
-      if (talks.length <= MAX_LOAD_TALK_COUNT) return false;
-      const loadCount = Math.ceil(talks.length / MAX_LOAD_TALK_COUNT);
-      return index + 1 === talks.length - (loadCount - 1) * MAX_LOAD_TALK_COUNT;
-    };
+  const isFunc = (index) => {
+    if (talks.length <= MAX_LOAD_TALK_COUNT) return false;
+    const loadCount = Math.ceil(talks.length / MAX_LOAD_TALK_COUNT);
+    return index + 1 === talks.length - (loadCount - 1) * MAX_LOAD_TALK_COUNT;
+  };
 
-    useEffect(() => {
-      if (talks.length > MAX_LOAD_TALK_COUNT && topMessageRef.current) {
-        topMessageRef?.current?.scrollIntoView();
-      } else {
-        setTimeout(() => {
-          lastMessageRef?.current?.scrollIntoView('smooth');
-        }, 300);
-      }
-    }, [talks]);
+  useEffect(() => {
+    if (talks.length > MAX_LOAD_TALK_COUNT && topMessageRef.current) {
+      topMessageRef?.current?.scrollIntoView();
+    } else {
+      setTimeout(() => {
+        lastMessageRef?.current?.scrollIntoView('smooth');
+      }, 300);
+    }
+  }, [talks]);
 
-    const handleScroll = () => {
-      if (chatContainerRef.current.scrollTop === 0) {
-        console.log('loaded');
-        setTalksLoadCount((prev) => prev + 1);
-        chatContainerRef.current.removeEventListener('scroll', this);
-      }
-    };
+  const handleScroll = () => {
+    if (chatContainerRef.current.scrollTop === 0) {
+      console.log('loaded');
+      setTalksLoadCount((prev) => prev + 1);
+      chatContainerRef.current.removeEventListener('scroll', this);
+    }
+  };
 
-    useEffect(() => {
-      chatContainerRef.current.addEventListener('scroll', handleScroll);
-    }, []);
+  useEffect(() => {
+    chatContainerRef.current.addEventListener('scroll', handleScroll);
+  }, []);
 
-    return (
-      <SMessageList ref={chatContainerRef}>
-        {talks.map((talkData, index) => (
-          <div key={talkData._id}>
-            {index === 0 && (
+  return (
+    <SMessageList ref={chatContainerRef}>
+      {talks.map((talkData, index) => (
+        <div key={talkData._id}>
+          {index === 0 && (
+            <SDispDate>
+              <div>{getChatDispDate(talkData.createdAt)}</div>
+            </SDispDate>
+          )}
+          {index === 0 ||
+            (Number(getChatCompereDate(talkData.createdAt)) >
+              Number(getChatCompereDate(talks[index - 1].createdAt)) && (
               <SDispDate>
                 <div>{getChatDispDate(talkData.createdAt)}</div>
               </SDispDate>
-            )}
-            {index === 0 ||
-              (Number(getChatCompereDate(talkData.createdAt)) >
-                Number(getChatCompereDate(talks[index - 1].createdAt)) && (
-                <SDispDate>
-                  <div>{getChatDispDate(talkData.createdAt)}</div>
-                </SDispDate>
-              ))}
-            {userData._id === talkData.sender_id ? (
-              <Message
-                key={talkData._id}
-                talkId={talkData._id}
-                senderId={talkData.sender_id}
-                message={talkData.message}
-                image={talkData.image}
-                createdAt={talkData.createdAt}
-                beforeMessageCreatedAt={talks[index - 1]}
-                senderIconImage={talkData.sender_icon_image}
-                isSender={true}
-                readCount={talkData.read_count}
-                reactors={talkData.reactors}
-                isGroupTalkRoom={talkRoom.is_group_talk_room}
-                fetchTalks={fetchTalks}
-                talks={talks}
-                setTalks={setTalks}
-                {...(isLastMessage(index) && { ref: lastMessageRef })}
-                {...(isFunc(index) && { ref: topMessageRef })}
-              />
-            ) : (
-              <Message
-                key={talkData._id}
-                talkId={talkData._id}
-                message={talkData.message}
-                image={talkData.image}
-                createdAt={talkData.createdAt}
-                senderIconImage={talkData.sender_icon_image}
-                senderId={talkData.sender_id}
-                isSender={false}
-                readCount={talkData.read_count}
-                reactors={talkData.reactors}
-                isGroupTalkRoom={talkRoom.is_group_talk_room}
-                fetchTalks={fetchTalks}
-                talks={talks}
-                setTalks={setTalks}
-                {...(isLastMessage(index) && { ref: lastMessageRef })}
-                {...(isFunc(index) && { ref: topMessageRef })}
-              />
-            )}
-          </div>
-        ))}
-      </SMessageList>
-    );
-  }
-);
+            ))}
+          {userData._id === talkData.sender_id ? (
+            <Message
+              key={talkData._id}
+              talkId={talkData._id}
+              senderId={talkData.sender_id}
+              message={talkData.message}
+              image={talkData.image}
+              createdAt={talkData.createdAt}
+              beforeMessageCreatedAt={talks[index - 1]}
+              senderIconImage={talkData.sender_icon_image}
+              isSender={true}
+              readCount={talkData.read_count}
+              reactors={talkData.reactors}
+              isGroupTalkRoom={talkRoom.is_group_talk_room}
+              fetchTalks={fetchTalks}
+              talks={talks}
+              setTalks={setTalks}
+              {...(isLastMessage(index) && { ref: lastMessageRef })}
+              {...(isFunc(index) && { ref: topMessageRef })}
+            />
+          ) : (
+            <Message
+              key={talkData._id}
+              talkId={talkData._id}
+              message={talkData.message}
+              image={talkData.image}
+              createdAt={talkData.createdAt}
+              senderIconImage={talkData.sender_icon_image}
+              senderId={talkData.sender_id}
+              isSender={false}
+              readCount={talkData.read_count}
+              reactors={talkData.reactors}
+              isGroupTalkRoom={talkRoom.is_group_talk_room}
+              fetchTalks={fetchTalks}
+              talks={talks}
+              setTalks={setTalks}
+              {...(isLastMessage(index) && { ref: lastMessageRef })}
+              {...(isFunc(index) && { ref: topMessageRef })}
+            />
+          )}
+        </div>
+      ))}
+    </SMessageList>
+  );
+});
 
 export default MessageBox;
 

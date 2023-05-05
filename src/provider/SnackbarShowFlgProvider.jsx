@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { createContext, useContext } from 'react';
 
 export const SnackbarShowFlgContext = createContext({});
-export const SnackbarShowFlgProvider = memo(({ children }) => {
+export const SnackbarShowFlgProvider = memo(function snackbarShowFlgProvider({
+  children,
+}) {
   const [snackbarIsShow, setSnackbarIsShow] = useState(false);
   return (
     <SnackbarShowFlgContext.Provider

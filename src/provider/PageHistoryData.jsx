@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { createContext, useContext } from 'react';
 
 export const PageHistoryDataContext = createContext({});
-export const PageHistoryDataProvider = memo(({ children }) => {
+export const PageHistoryDataProvider = memo(function pageHistoryDataProvider({
+  children,
+}) {
   const [pageHistoryArray, setPageHistoryArray] = useState([]);
 
   useEffect(() => {

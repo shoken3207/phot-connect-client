@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { createContext, useContext } from 'react';
 
 export const IsLoadingFlgContext = createContext({});
-export const IsLoadingFlgProvider = memo(({ children }) => {
+export const IsLoadingFlgProvider = memo(function isLoadingFlgContext({
+  children,
+}) {
   const [isLoading, setIsLoading] = useState(false);
   return (
     <IsLoadingFlgContext.Provider value={{ isLoading, setIsLoading }}>

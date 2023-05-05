@@ -23,224 +23,222 @@ import ConfirmDialog from './ConfirmDialog';
 import { Avatar, AvatarGroup } from '@mui/material';
 
 const Message = memo(
-  forwardRef(
-    (
-      {
-        senderIconImage,
-        senderId,
-        message,
-        image,
-        isSender,
-        createdAt,
-        readCount,
-        reactors,
-        isGroupTalkRoom,
-        talkId,
-        talks,
-        setTalks,
-      },
-      ref
-    ) => {
-      const [reactionBarIsOpen, setReactionBarIsOpen] = useState(false);
-      const [reactorsListIsOpen, setReactorsListIsOpen] = useState(false);
-      const [reactorsArray, setReactorsArray] = useState([]);
-      const [menuList, setMenuList] = useState([]);
-      const [deleteTalkConfirmDialogIsOpen, setDeleteTalkConfirmDialogIsOpen] =
-        useState(false);
-      const { reactionTalkFunc, deleteTalkFunc, removeTalkReactionFunc } =
-        useChatFunc();
-      const { userData } = useUserData();
-      const isReactioned = (userId) => {
-        const reactor = reactors.find((x) => x._id === userId);
-        return !!reactor;
-      };
+  forwardRef(function message(
+    {
+      senderIconImage,
+      senderId,
+      message,
+      image,
+      isSender,
+      createdAt,
+      readCount,
+      reactors,
+      isGroupTalkRoom,
+      talkId,
+      talks,
+      setTalks,
+    },
+    ref
+  ) {
+    const [reactionBarIsOpen, setReactionBarIsOpen] = useState(false);
+    const [reactorsListIsOpen, setReactorsListIsOpen] = useState(false);
+    const [reactorsArray, setReactorsArray] = useState([]);
+    const [menuList, setMenuList] = useState([]);
+    const [deleteTalkConfirmDialogIsOpen, setDeleteTalkConfirmDialogIsOpen] =
+      useState(false);
+    const { reactionTalkFunc, deleteTalkFunc, removeTalkReactionFunc } =
+      useChatFunc();
+    const { userData } = useUserData();
+    const isReactioned = (userId) => {
+      const reactor = reactors.find((x) => x._id === userId);
+      return !!reactor;
+    };
 
-      useEffect(() => {
-        const menuArray = [
-          {
-            text: 'リアクションした人を見る',
-            icon: <SentimentVerySatisfiedIcon />,
-            onClickFunc: (e) => dispReactors(e),
-          },
-          ,
-        ];
-        const talkIndex = talks.findIndex((x) => x._id === talkId);
-        if (userData._id === senderId) {
-          menuArray.push({
-            text: 'トークを削除する',
-            icon: <DeleteIcon />,
-            onClickFunc: () => setDeleteTalkConfirmDialogIsOpen(true),
-          });
-        }
-        if (userData._id !== senderId && !isReactioned(userData._id)) {
-          menuArray.push({
-            text: 'トークにリアクションする',
-            icon: <AddReactionIcon />,
-            onClickFunc: (e) => setReactionBarIsOpen(true),
-          });
-        }
-        setMenuList(menuArray);
-        setReactorsArray(talks[talkIndex].reactors);
-      }, [talks]);
-
-      const dispReactors = () => {
-        const convertReactors = reactors.map((x) => {
-          return {
-            primaryText: x.username || 'unknown',
-            secondaryText: (
-              <Avatar
-                sx={{
-                  width: 38,
-                  height: 38,
-                  bgcolor: AVATAR_COLOR[x.reaction_type],
-                }}
-              >
-                {REACTION_AVATAR_ICONS[x.reaction_type]}
-              </Avatar>
-            ),
-            iconImage: x.icon_image,
-            id: x._id,
-          };
+    useEffect(() => {
+      const menuArray = [
+        {
+          text: 'リアクションした人を見る',
+          icon: <SentimentVerySatisfiedIcon />,
+          onClickFunc: (e) => dispReactors(e),
+        },
+        ,
+      ];
+      const talkIndex = talks.findIndex((x) => x._id === talkId);
+      if (userData._id === senderId) {
+        menuArray.push({
+          text: 'トークを削除する',
+          icon: <DeleteIcon />,
+          onClickFunc: () => setDeleteTalkConfirmDialogIsOpen(true),
         });
-        setReactorsArray([...convertReactors]);
-        setReactorsListIsOpen(true);
-      };
+      }
+      if (userData._id !== senderId && !isReactioned(userData._id)) {
+        menuArray.push({
+          text: 'トークにリアクションする',
+          icon: <AddReactionIcon />,
+          onClickFunc: (e) => setReactionBarIsOpen(true),
+        });
+      }
+      setMenuList(menuArray);
+      setReactorsArray(talks[talkIndex].reactors);
+    }, [talks]);
 
-      const reactionTalk = async (reaction) => {
-        const { success } = await reactionTalkFunc({
-          talk_id: talkId,
-          reactor_id: userData._id,
+    const dispReactors = () => {
+      const convertReactors = reactors.map((x) => {
+        return {
+          primaryText: x.username || 'unknown',
+          secondaryText: (
+            <Avatar
+              sx={{
+                width: 38,
+                height: 38,
+                bgcolor: AVATAR_COLOR[x.reaction_type],
+              }}
+            >
+              {REACTION_AVATAR_ICONS[x.reaction_type]}
+            </Avatar>
+          ),
+          iconImage: x.icon_image,
+          id: x._id,
+        };
+      });
+      setReactorsArray([...convertReactors]);
+      setReactorsListIsOpen(true);
+    };
+
+    const reactionTalk = async (reaction) => {
+      const { success } = await reactionTalkFunc({
+        talk_id: talkId,
+        reactor_id: userData._id,
+        reaction_type: reaction,
+      });
+      if (success) {
+        const copyTalks = [...talks];
+        const talkIndex = talks.findIndex((x) => x._id === talkId);
+        copyTalks[talkIndex].reactors.push({
+          _id: userData._id,
+          icon_image: userData.iconImage,
+          username: userData.username,
+          desc: userData.desc,
           reaction_type: reaction,
         });
-        if (success) {
-          const copyTalks = [...talks];
-          const talkIndex = talks.findIndex((x) => x._id === talkId);
-          copyTalks[talkIndex].reactors.push({
-            _id: userData._id,
-            icon_image: userData.iconImage,
-            username: userData.username,
-            desc: userData.desc,
-            reaction_type: reaction,
-          });
-          setTalks(copyTalks);
-        }
-        setReactionBarIsOpen(false);
-      };
+        setTalks(copyTalks);
+      }
+      setReactionBarIsOpen(false);
+    };
 
-      const removeTalkReaction = async (e, reactorId) => {
-        e.preventDefault();
-        const { success } = await removeTalkReactionFunc({
-          talk_id: talkId,
-          reactor_id: reactorId,
-        });
-        if (success) {
-          const copyTalks = [...talks];
-          const talkIndex = copyTalks.findIndex((x) => x._id === talkId);
-          const reactorIndex = copyTalks[talkIndex].reactors.findIndex(
-            (x) => x._id === reactorId
-          );
-          copyTalks[talkIndex].reactors.splice(reactorIndex, 1);
-          setTalks(copyTalks);
-        }
-      };
+    const removeTalkReaction = async (e, reactorId) => {
+      e.preventDefault();
+      const { success } = await removeTalkReactionFunc({
+        talk_id: talkId,
+        reactor_id: reactorId,
+      });
+      if (success) {
+        const copyTalks = [...talks];
+        const talkIndex = copyTalks.findIndex((x) => x._id === talkId);
+        const reactorIndex = copyTalks[talkIndex].reactors.findIndex(
+          (x) => x._id === reactorId
+        );
+        copyTalks[talkIndex].reactors.splice(reactorIndex, 1);
+        setTalks(copyTalks);
+      }
+    };
 
-      const deleteTalk = async () => {
-        const { success } = await deleteTalkFunc({
-          talk_id: talkId,
-          user_id: userData._id,
-        });
-        if (success) {
-          const copyTalks = [...talks];
-          const talkIndex = talks.findIndex((x) => x._id === talkId);
-          copyTalks.splice(talkIndex, 1);
-          setTalks(copyTalks);
-        }
-      };
+    const deleteTalk = async () => {
+      const { success } = await deleteTalkFunc({
+        talk_id: talkId,
+        user_id: userData._id,
+      });
+      if (success) {
+        const copyTalks = [...talks];
+        const talkIndex = talks.findIndex((x) => x._id === talkId);
+        copyTalks.splice(talkIndex, 1);
+        setTalks(copyTalks);
+      }
+    };
 
-      return (
-        <SMessageWrap isSender={isSender} ref={ref}>
-          <SMessageIcon isSender={isSender} senderIconImage={senderIconImage}>
-            <LinkWrap href={`/Profile/${senderId}`}>
-              <img
-                src={senderIconImage || '/images/noAvatar.png'}
-                alt='avatarImage'
-              />
-            </LinkWrap>
-          </SMessageIcon>
-          <SMessageContent isSender={isSender} image={image}>
-            <div>
-              <SMessage
-                message={message}
-                isSender={isSender}
-                dangerouslySetInnerHTML={{ __html: message }}
-              ></SMessage>
-              <SImage image={image}>
-                <img src={image} />
-              </SImage>
-              <SSendInfo isSender={isSender}>
-                <div>
-                  <p>
-                    {isGroupTalkRoom
-                      ? isSender && readCount > 0 && `既読${readCount}`
-                      : isSender && readCount === 1 && '既読'}
-                  </p>
-                  <p>{getChatDate(createdAt)}</p>
-                </div>
-                <CommonMenu iconSize='small' menuArray={menuList} />
-              </SSendInfo>
-            </div>
-            <div>
-              <AvatarGroup max={MAX_DISP_REACTION_AVATAR_COUNT}>
-                {reactors.map((reactor) => (
-                  <Avatar
-                    key={reactor._id}
-                    sx={{
-                      width: 22,
-                      height: 22,
-                      bgcolor: AVATAR_COLOR[reactor.reaction_type],
-                    }}
-                  >
-                    {SMALL_REACTION_AVATAR_ICONS[reactor.reaction_type]}
-                  </Avatar>
-                ))}
-              </AvatarGroup>
-            </div>
-          </SMessageContent>
-          <CommonDialog
-            dialogTitle='リアクションを選択'
-            isOpen={reactionBarIsOpen}
-            setIsOpen={setReactionBarIsOpen}
-          >
-            <ReactionBarSelector
-              iconSize='28px'
-              reactions={REACTIONS}
-              onSelect={(reaction) => reactionTalk(reaction)}
+    return (
+      <SMessageWrap isSender={isSender} ref={ref}>
+        <SMessageIcon isSender={isSender} senderIconImage={senderIconImage}>
+          <LinkWrap href={`/Profile/${senderId}`}>
+            <img
+              src={senderIconImage || '/images/noAvatar.png'}
+              alt='avatarImage'
             />
-          </CommonDialog>
-          <CommonDialog
-            dialogTitle='トークへのリアクションを表示'
-            isOpen={reactorsListIsOpen}
-            setIsOpen={setReactorsListIsOpen}
-          >
-            <PersonList
-              listData={reactorsArray}
-              pagePath='/Profile'
-              onClick={(e, reactorId) => removeTalkReaction(e, reactorId)}
-              withActionButton
-              reactorAction
-            />
-          </CommonDialog>
-          <ConfirmDialog
-            isOpen={deleteTalkConfirmDialogIsOpen}
-            setIsOpen={setDeleteTalkConfirmDialogIsOpen}
-            primaryText='本当にこのトークを削除しますか？'
-            secondaryText='削除したトークは元に戻すことが出来ません。'
-            onClick={(e) => deleteTalk(e)}
+          </LinkWrap>
+        </SMessageIcon>
+        <SMessageContent isSender={isSender} image={image}>
+          <div>
+            <SMessage
+              message={message}
+              isSender={isSender}
+              dangerouslySetInnerHTML={{ __html: message }}
+            ></SMessage>
+            <SImage image={image}>
+              <img src={image} />
+            </SImage>
+            <SSendInfo isSender={isSender}>
+              <div>
+                <p>
+                  {isGroupTalkRoom
+                    ? isSender && readCount > 0 && `既読${readCount}`
+                    : isSender && readCount === 1 && '既読'}
+                </p>
+                <p>{getChatDate(createdAt)}</p>
+              </div>
+              <CommonMenu iconSize='small' menuArray={menuList} />
+            </SSendInfo>
+          </div>
+          <div>
+            <AvatarGroup max={MAX_DISP_REACTION_AVATAR_COUNT}>
+              {reactors.map((reactor) => (
+                <Avatar
+                  key={reactor._id}
+                  sx={{
+                    width: 22,
+                    height: 22,
+                    bgcolor: AVATAR_COLOR[reactor.reaction_type],
+                  }}
+                >
+                  {SMALL_REACTION_AVATAR_ICONS[reactor.reaction_type]}
+                </Avatar>
+              ))}
+            </AvatarGroup>
+          </div>
+        </SMessageContent>
+        <CommonDialog
+          dialogTitle='リアクションを選択'
+          isOpen={reactionBarIsOpen}
+          setIsOpen={setReactionBarIsOpen}
+        >
+          <ReactionBarSelector
+            iconSize='28px'
+            reactions={REACTIONS}
+            onSelect={(reaction) => reactionTalk(reaction)}
           />
-        </SMessageWrap>
-      );
-    }
-  )
+        </CommonDialog>
+        <CommonDialog
+          dialogTitle='トークへのリアクションを表示'
+          isOpen={reactorsListIsOpen}
+          setIsOpen={setReactorsListIsOpen}
+        >
+          <PersonList
+            listData={reactorsArray}
+            pagePath='/Profile'
+            onClick={(e, reactorId) => removeTalkReaction(e, reactorId)}
+            withActionButton
+            reactorAction
+          />
+        </CommonDialog>
+        <ConfirmDialog
+          isOpen={deleteTalkConfirmDialogIsOpen}
+          setIsOpen={setDeleteTalkConfirmDialogIsOpen}
+          primaryText='本当にこのトークを削除しますか？'
+          secondaryText='削除したトークは元に戻すことが出来ません。'
+          onClick={(e) => deleteTalk(e)}
+        />
+      </SMessageWrap>
+    );
+  })
 );
 
 export default Message;
