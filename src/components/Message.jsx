@@ -3,7 +3,6 @@ import LinkWrap from './LinkWrap';
 import styled from 'styled-components';
 import { getChatDate } from '../utils/dateUtils';
 import AddReactionIcon from '@mui/icons-material/AddReaction';
-import FormatQuoteIcon from '@mui/icons-material/FormatQuote';
 import SentimentVerySatisfiedIcon from '@mui/icons-material/SentimentVerySatisfied';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CommonMenu from './CommonMenu';
@@ -23,7 +22,7 @@ import ConfirmDialog from './ConfirmDialog';
 import { Avatar, AvatarGroup } from '@mui/material';
 
 const Message = memo(
-  forwardRef(function message(
+  forwardRef(function Message(
     {
       senderIconImage,
       senderId,

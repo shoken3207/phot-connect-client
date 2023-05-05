@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { createContext, useContext } from 'react';
 
 export const SnackbarInfoContext = createContext({});
-export const SnackbarInfoProvider = memo(function nackbarInfoProvider({
+export const SnackbarInfoProvider = memo(function SnackbarInfoProvider({
   children,
 }) {
   const [snackbarInfo, setSnackbarInfo] = useState({});

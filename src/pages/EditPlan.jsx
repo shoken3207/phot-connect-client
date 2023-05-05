@@ -22,7 +22,7 @@ import usePlanFunc from '../hooks/usePlanFunc';
 import { useUserData } from '../provider/UserDataProvider';
 import { convertToSaveDate } from '../utils/dateUtils';
 
-const EditPlan = memo(function editPlan() {
+const EditPlan = memo(function EditPlan() {
   const router = useRouter();
   const [plan, setPlan] = useState({});
   const [title, setTitle] = useState('');

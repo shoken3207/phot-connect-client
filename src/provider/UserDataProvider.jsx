@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { createContext, useContext } from 'react';
 
 export const UserDataContext = createContext({});
-export const UserDataProvider = memo(function userDataProvider({ children }) {
+export const UserDataProvider = memo(function UserDataProvider({ children }) {
   const [userData, setUserData] = useState({
     _id: '',
     username: '',

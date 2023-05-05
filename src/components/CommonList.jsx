@@ -7,7 +7,7 @@ import TwoColumnBox from '../../src/components/TwoColumnBox';
 import { useUserData } from '../provider/UserDataProvider';
 import styled from 'styled-components';
 import { Button } from '@mui/material';
-const PersonList = memo(function personList({
+const PersonList = memo(function PersonList({
   listData,
   setListData,
   pagePath,

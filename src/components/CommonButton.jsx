@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import Button from '@mui/material/Button';
 
-const CommonButton = memo(function commonButton(props) {
+const CommonButton = memo(function CommonButton(props) {
   const {
     text = '',
     className = '',

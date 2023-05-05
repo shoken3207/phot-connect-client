@@ -14,7 +14,7 @@ const GridList = styled.div`
   margin: 0 auto;
 `;
 
-const PlanList = memo(function planList({
+const PlanList = memo(function PlanList({
   planList,
   setPlans,
   planCountVal,

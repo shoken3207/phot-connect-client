@@ -20,7 +20,7 @@ const StyledButton = styled(Button)`
   }
 `;
 
-const SelectImage = memo(function selectImage({
+const SelectImage = memo(function SelectImage({
   text = '',
   id = '',
   color = 'primary',

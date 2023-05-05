@@ -4,7 +4,7 @@ import { useUserData } from '../provider/UserDataProvider';
 import { getChatCompereDate, getChatDispDate } from '../utils/dateUtils';
 import Message from './Message';
 import { MAX_LOAD_TALK_COUNT } from '../const';
-const MessageBox = memo(function messageBox({
+const MessageBox = memo(function MessageBox({
   talks,
   setTalksLoadCount,
   setTalks,

@@ -19,7 +19,7 @@ import ConfirmDialog from './ConfirmDialog';
 import CommonDialog from './CommonDialog';
 import PersonList from './CommonList';
 
-const PersonListItem = memo(function personListItem({
+const PersonListItem = memo(function PersonListItem({
   id,
   listData,
   setListData,

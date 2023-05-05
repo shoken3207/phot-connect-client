@@ -11,7 +11,7 @@ import { MAX_LOAD_TALK_COUNT, SERVER_URL } from '../../const';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../../firebase/main';
 
-const TalkRoom = memo(function talkRoom() {
+const TalkRoom = memo(function TalkRoom() {
   const router = useRouter();
   const [user] = useAuthState(auth);
   const talkRoomId = router.query.id;

@@ -22,7 +22,7 @@ import SelectPrefecture from '../components/SelectPrefecture';
 import useUserFunc from '../hooks/useUserFunc';
 import useFetchData from '../hooks/useFetchData';
 
-const EditProfile = memo(function editProfile() {
+const EditProfile = memo(function EditProfile() {
   const router = useRouter();
   const { userData, setUserData } = useUserData();
   const [username, setUsername] = useState(userData.username);

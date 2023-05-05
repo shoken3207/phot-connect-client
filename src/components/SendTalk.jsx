@@ -11,7 +11,7 @@ import { getSendMessageCompereDate } from '../utils/dateUtils';
 import io from 'socket.io-client';
 import { SERVER_URL } from '../const';
 
-const SendTalk = memo(function sendTalk({
+const SendTalk = memo(function SendTalk({
   userId,
   iconImage,
   talkRoomId,

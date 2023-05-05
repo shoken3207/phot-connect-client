@@ -5,7 +5,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/main';
 import { useRouter } from 'next/router';
 import useFetchData from '../hooks/useFetchData';
-const Chat = memo(function chat() {
+const Chat = memo(function Chat() {
   const { fetchTalkRoomsFunc } = useFetchData();
   const router = useRouter();
   const [user] = useAuthState(auth);
