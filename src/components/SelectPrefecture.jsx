@@ -5,13 +5,13 @@ import { prefectureArray } from '../const';
 const SelectPrefecture = ({ prefecture, setPrefecture }) => {
   return (
     <Autocomplete
-      id='prefectures'
-      disablePortal
       options={prefectureArray}
       value={prefecture}
       onChange={(e, value) => setPrefecture(value)}
       fullWidth
-      renderInput={(params) => <TextField {...params} label='都道府県を入力' />}
+      renderInput={(params) => (
+        <TextField variant='standard' {...params} label='都道府県を入力' />
+      )}
     />
   );
 };

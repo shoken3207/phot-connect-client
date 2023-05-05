@@ -6,34 +6,31 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import { auth } from '../firebase/main';
 import { useUserData } from '../provider/UserDataProvider';
 import HomeIcon from '@mui/icons-material/Home';
-import LogoutIcon from '@mui/icons-material/Logout';
 import EditIcon from '@mui/icons-material/Edit';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
+import SearchIcon from '@mui/icons-material/Search';
+import LoginIcon from '@mui/icons-material/Login';
+import ChatIcon from '@mui/icons-material/Chat';
 import DriveEtaIcon from '@mui/icons-material/DriveEta';
+import PersonIcon from '@mui/icons-material/Person';
 import LinkWrap from './LinkWrap';
 
 export default function MobileMenu({ isOpen, setIsOpen }) {
-  const { setUserData } = useUserData();
   const mobileMenuArray = [
     { text: 'ホーム', icon: <HomeIcon />, path: '/Home' },
-    { text: 'ログアウト', icon: <LogoutIcon />, path: '' },
     {
       text: 'プロフィール編集',
-      icon: <EditIcon />,
+      icon: <PersonIcon />,
       path: '/EditProfile',
     },
-    { text: '友達追加', icon: <PersonAddIcon />, path: '/addFriend' },
-    { text: 'プランを作成', icon: <DriveEtaIcon />, path: '/CreatePlan' },
-    { text: 'トークルーム', icon: <DriveEtaIcon />, path: '/TalkRoom' },
-    { text: 'チャット', icon: <DriveEtaIcon />, path: '/Chat' },
-    { text: 'プロフィール', icon: <DriveEtaIcon />, path: '/Profile/1' },
+    { text: 'プランを作成', icon: <EditIcon />, path: '/CreatePlan' },
+    { text: 'チャット', icon: <ChatIcon />, path: '/Chat' },
+    { text: '検索', icon: <SearchIcon />, path: '/Search' },
+    { text: 'サインアップ', icon: <AppRegistrationIcon />, path: '/SignUp' },
+    { text: 'サインイン', icon: <LoginIcon />, path: '/SignIn' },
     { text: 'テスト', icon: <DriveEtaIcon />, path: '/test' },
-    { text: '検索', icon: <DriveEtaIcon />, path: '/Search' },
-    { text: 'サインアップ', icon: <DriveEtaIcon />, path: '/SignUp' },
-    { text: 'サインイン', icon: <DriveEtaIcon />, path: '/SignIn' },
   ];
   const toggleDrawer = (open) => (event) => {
     if (
@@ -43,12 +40,6 @@ export default function MobileMenu({ isOpen, setIsOpen }) {
       return;
     }
     setIsOpen(open);
-  };
-
-  const logout = () => {
-    auth.signOut();
-    setUserData('');
-    sessionStorage.removeItem('user');
   };
 
   const list = () => (

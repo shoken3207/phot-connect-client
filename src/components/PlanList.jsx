@@ -1,41 +1,67 @@
+import { Pagination } from '@mui/material';
 import React, { memo } from 'react';
 import styled from 'styled-components';
+import { MAX_LOAD_PLAN_COUNT } from '../const';
 import PlanBox from './PlanBox';
 const GridList = styled.div`
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  /* display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr)); */
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  /* gap: 1rem; */
   width: 95%;
   margin: 0 auto;
-  background-color: #e3d7a339;
-  justify-content: center;
 `;
 
-const PlanList = memo(({ planList, setPlans, fetchType, fetchWord }) => {
-  return (
-    <GridList>
-      {planList.map((planItem) => (
-        <PlanBox
-          key={planItem._id}
-          planId={planItem._id}
-          organizerIconImage={planItem.organizerIconImage}
-          place={planItem.place}
-          prefecture={planItem.prefecture}
-          images={planItem.images}
-          date={planItem.date}
-          title={planItem.title}
-          desc={planItem.desc}
-          chipTexts={planItem.chipTexts}
-          organizerId={planItem.organizerId}
-          participants={planItem.participants}
-          talkRoomId={planItem.talkRoomId}
-          setPlans={setPlans}
-          fetchType={fetchType}
-          fetchWord={fetchWord}
-        />
-      ))}
-    </GridList>
-  );
-});
+const PlanList = memo(
+  ({
+    planList,
+    setPlans,
+    planCountVal,
+    currentPageIndex,
+    setCurrentPageIndex,
+  }) => {
+    return (
+      <div>
+        <GridList>
+          {planList.map((planItem) => (
+            <PlanBox
+              key={planItem._id}
+              planId={planItem._id}
+              organizerIconImage={planItem.organizer_icon_image}
+              place={planItem.place}
+              prefecture={planItem.prefecture}
+              images={planItem.images}
+              date={planItem.date}
+              deadLine={planItem.dead_line}
+              title={planItem.title}
+              limit={planItem.limit}
+              desc={planItem.desc}
+              chipTexts={planItem.tags}
+              organizerId={planItem.organizer_id}
+              participants={planItem.participants}
+              likers={planItem.likers}
+              talkRoomId={planItem.talk_room_id}
+              blackUsers={planItem.blackUsers}
+              plans={planList}
+              setPlans={setPlans}
+            />
+          ))}
+        </GridList>
+        {planCountVal > MAX_LOAD_PLAN_COUNT && (
+          <Pagination
+            count={Math.ceil(planCountVal / MAX_LOAD_PLAN_COUNT)}
+            variant='outlined'
+            size='large'
+            color='primary'
+            page={currentPageIndex}
+            onChange={(e, value) => setCurrentPageIndex(value)}
+          />
+        )}
+      </div>
+    );
+  }
+);
 
 export default PlanList;

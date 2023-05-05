@@ -1,10 +1,11 @@
-import { Button, TextField } from '@mui/material';
+import { Avatar, Button, TextField } from '@mui/material';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
 import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
 import { useSnackbarInfo } from '../provider/SnackbarInfoProvider';
 import { useSnackbarShowFlg } from '../provider/SnackbarShowFlgProvider';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
@@ -36,9 +37,8 @@ const SignUp = () => {
       return;
     }
     createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(async (userCredential) => {
         const user = userCredential.user;
-        console.log('user: ', user);
         router.push('/SignIn');
       })
       .catch((err) => {
@@ -46,15 +46,17 @@ const SignUp = () => {
         const errorMessage = err.message;
         setSnackbarInfo({ text: errorMessage, severity: 'warning' });
         setSnackbarIsShow(true);
-        console.log('errorCode: ', errorCode);
-        console.log('errorMessage: ', errorMessage);
       });
   };
   return (
     <SWrap>
-      <SBox>
-        <h3>Sign Up</h3>
-        <p>メールアドレス、パスワード、確認用パスワードを入力してください。</p>
+      <SBox onSubmit={(e) => signUp(e)}>
+        <div>
+          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+            <LockOutlinedIcon />
+          </Avatar>
+          <h3>Sign Up</h3>
+        </div>
         <div>
           <TextField
             onChange={(e) => handleInput(e, setEmail)}
@@ -64,6 +66,11 @@ const SignUp = () => {
             autoComplete='email'
             autoFocus
             required
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                signUp(event);
+              }
+            }}
           />
           <TextField
             onChange={(e) => handleInput(e, setPassword)}
@@ -73,6 +80,11 @@ const SignUp = () => {
             autoComplete='password'
             type='password'
             required
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                signUp(event);
+              }
+            }}
           />
           <TextField
             onChange={(e) => handleInput(e, setConfirmPassword)}
@@ -82,6 +94,11 @@ const SignUp = () => {
             autoComplete='password'
             type='password'
             required
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                signUp(event);
+              }
+            }}
           />
         </div>
         <SButtonGroup>
@@ -113,8 +130,8 @@ const SWrap = styled.div`
   align-items: center;
 `;
 
-const SBox = styled.div`
-  max-width: 560px;
+const SBox = styled.form`
+  max-width: 460px;
   width: 90%;
   padding: 1.8rem 2rem;
   display: flex;
@@ -124,18 +141,20 @@ const SBox = styled.div`
   box-shadow: 8px 8px 19px -6px #777777;
   border-radius: 10px;
 
-  > h3 {
-    text-align: center;
-    font-size: 1.6rem;
-    font-weight: 450;
-  }
-
-  > p {
-    font-size: 0.9rem;
-  }
-
   > div {
     &:nth-of-type(1) {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      row-gap: 0.2rem;
+
+      > h3 {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 450;
+      }
+    }
+    &:nth-of-type(2) {
       display: flex;
       flex-direction: column;
       row-gap: 0.7rem;

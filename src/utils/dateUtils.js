@@ -3,6 +3,15 @@ export const convertToSaveDate = (date) => {
   return formatDate;
 };
 
+export const convertToDefaultDeadLine = (date) => {
+  const deadLine = new Date(
+    `${date.getFullYear()}/${date.getMonth() + 1}/${
+      date.getDate() - 1
+    } 23:59:59`
+  );
+  return deadLine;
+};
+
 export const getYear = (saveDate) => {
   const date = new Date(saveDate);
   return date.getFullYear();
@@ -61,10 +70,11 @@ export const getChatDispDate = (saveDate) => {
 };
 
 const addZero = (value) => {
+  const valLen = value.toString().length;
   let formatValue;
-  if (value.length === 0) {
+  if (valLen === 0) {
     formatValue = '00';
-  } else if (value.length === 1) {
+  } else if (valLen === 1) {
     formatValue = '0' + value;
   } else {
     formatValue = value;

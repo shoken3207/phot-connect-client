@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -7,41 +7,81 @@ import FormLabel from '@mui/material/FormLabel';
 import SelectPrefecture from '../components/SelectPrefecture';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button/Button';
-import axios from 'axios';
 import CommonList from '../components/CommonList';
 import PlanList from '../components/PlanList';
 import styled from 'styled-components';
 import useFetchData from '../hooks/useFetchData';
-import useUpdateUser from '../hooks/useUpdateUser';
+import useUserFunc from '../hooks/useUserFunc';
 import { useUserData } from '../provider/UserDataProvider';
-import { useSnackbarInfo } from '../provider/SnackbarInfoProvider';
-import { useSnackbarShowFlg } from '../provider/SnackbarShowFlgProvider';
+import { useRouter } from 'next/router';
+import { MAX_LOAD_PLAN_COUNT } from '../const';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '../firebase/main';
 
 const Search = () => {
-  const [searchCategory, setSearchCategory] = useState('users');
-  const [prefecture, setPrefecture] = useState('');
+  const [user] = useAuthState(auth);
+  const router = useRouter();
+  const requestSearchCategory = router.query.searchCategory;
+  const requestTag = router.query.tag;
+  const requestPrefecture = router.query.prefecture;
+  const [searchCategory, setSearchCategory] = useState(
+    requestSearchCategory || 'users'
+  );
   const [username, setUsername] = useState('');
+  const [prefecture, setPrefecture] = useState(requestPrefecture || '');
+  const [tag, setTag] = useState(requestTag || '');
   const [users, setUsers] = useState([]);
-  const [plans, setPlans] = useState([]);
-  const { fetchUserData } = useFetchData();
-  const { setUserData } = useUserData();
-  const { setSnackbarInfo } = useSnackbarInfo();
-  const { setSnackbarIsShow } = useSnackbarShowFlg();
-  const { addFriendFunc } = useUpdateUser();
-  const addFriend = async (e, userId, friendId) => {
+  const [plansByPrefecture, setPlansByPrefecture] = useState([]);
+  const [plansByTag, setPlansByTag] = useState([]);
+  const [planCountValByPrefecture, setPlanCountValByPrefecture] = useState(0);
+  const [currentPageIndexByPrefecture, setCurrentPageIndexByPrefecture] =
+    useState(1);
+  const [planCountValByTag, setPlanCountValByTag] = useState(0);
+  const [currentPageIndexByTag, setCurrentPageIndexByTag] = useState(1);
+  const [isUpdateQuery, setIsUpdateQuery] = useState(false);
+  const { userData, setUserData } = useUserData();
+  const { addFriendFunc } = useUserFunc();
+  const {
+    fetchPlansByPrefectureFunc,
+    fetchPlansByTagFunc,
+    fetchUserByIdFunc,
+    fetchUsersByNameFunc,
+  } = useFetchData();
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/auth');
+    }
+  }, [user]);
+  useEffect(() => {
+    if (requestSearchCategory === undefined) {
+      return;
+    }
+    setSearchCategory(requestSearchCategory);
+    if (requestSearchCategory === 'prefecture') {
+      setPrefecture(requestPrefecture);
+    } else if (requestSearchCategory === 'tag') {
+      setTag(requestTag);
+    }
+    setIsUpdateQuery((prevState) => !prevState);
+  }, [router.query]);
+
+  useEffect(() => {
+    if (requestSearchCategory === undefined) {
+      return;
+    }
+    search();
+    setIsUpdateQuery(false);
+  }, [isUpdateQuery, currentPageIndexByPrefecture, currentPageIndexByTag]);
+
+  const addFriend = async (e, friendId) => {
     e.preventDefault();
-    const friend = await fetchUserData(friendId);
-    await addFriendFunc(userId, friend);
-    // await axios.put(`http://localhost:5000/api/user/${friendId}/add`, {
-    //   userId,
-    // });
-    // await axios.post('http://localhost:5000/api/talkRoom/create', {
-    //   talkRoomIconImage: friend.iconImage,
-    //   talkRoomName: friend.username,
-    //   members: [userId, friendId],
-    // });
-    const user = await fetchUserData(userId);
-    setUserData(user);
+    const option = { user_id: userData._id, friend_id: friendId };
+    const { success } = await addFriendFunc(option);
+    if (success) {
+      const user = await fetchUserByIdFunc(userData._id);
+      setUserData(user);
+    }
   };
   const handleChange = (e, setFunc, value) => {
     e.preventDefault();
@@ -53,35 +93,39 @@ const Search = () => {
   };
 
   const search = async (e) => {
-    e.preventDefault();
-    try {
-      if (searchCategory === 'users') {
-        const response = await axios.get(
-          `http://localhost:5000/api/user/${username}/search`
-        );
-        const userArray = response.data.map((x) => {
-          return {
-            primaryText: x.username,
-            secondaryText: x.desc,
-            iconImage: x.iconImage,
-            id: x._id,
-          };
-        });
-        console.log(userArray);
-        setUsers(userArray);
-      } else if (searchCategory === 'plans') {
-        console.log('prefecture: ', prefecture);
-        const response = await axios.get(
-          `http://localhost:5000/api/plan/${prefecture}/prefecture`
-        );
-        setPlans(response.data);
-        console.log('response: ', response.data);
-      }
-    } catch (err) {
-      const { response } = err;
-      console.log('response', response.data);
-      setSnackbarInfo({ text: response.data, severity: 'warning' });
-      setSnackbarIsShow(true);
+    e && e.preventDefault();
+    if (searchCategory === 'users') {
+      if (username === '') return;
+      const user = await fetchUserByIdFunc(userData._id);
+      setUserData(user);
+      const response = await fetchUsersByNameFunc(username);
+      const userArray = response.map((x) => {
+        return {
+          primaryText: x.username,
+          secondaryText: x.desc,
+          iconImage: x.iconImage,
+          id: x._id,
+        };
+      });
+      setUsers(userArray);
+    } else if (searchCategory === 'prefecture') {
+      if (prefecture === '') return;
+      const { plans, planCount } = await fetchPlansByPrefectureFunc(
+        prefecture,
+        MAX_LOAD_PLAN_COUNT * (currentPageIndexByPrefecture - 1),
+        MAX_LOAD_PLAN_COUNT
+      );
+      setPlansByPrefecture(plans);
+      setPlanCountValByPrefecture(planCount);
+    } else if (searchCategory === 'tag') {
+      if (tag === '') return;
+      const { plans, planCount } = await fetchPlansByTagFunc(
+        tag,
+        MAX_LOAD_PLAN_COUNT * (currentPageIndexByTag - 1),
+        MAX_LOAD_PLAN_COUNT
+      );
+      setPlansByTag(plans);
+      setPlanCountValByTag(planCount);
     }
   };
   return (
@@ -89,28 +133,55 @@ const Search = () => {
       <FormControl>
         <FormLabel>検索したいものを選んでください。</FormLabel>
         <RadioGroup
-          defaultValue='users'
-          name='radio-buttons-group'
+          value={searchCategory}
           onChange={(e, value) => handleChange(e, setSearchCategory, value)}
         >
-          <FormControlLabel value='users' control={<Radio />} label='users' />
-          <FormControlLabel value='plans' control={<Radio />} label='plans' />
+          <FormControlLabel
+            value='users'
+            control={<Radio />}
+            label='名前からユーザ'
+          />
+          <FormControlLabel
+            value='prefecture'
+            control={<Radio />}
+            label='都道府県からプラン'
+          />
+          <FormControlLabel
+            value='tag'
+            control={<Radio />}
+            label='タグからプラン'
+          />
         </RadioGroup>
       </FormControl>
-      {searchCategory === 'users' ? (
-        <TextField
-          id='username'
-          label='ユーザーネームを入力'
-          value={username}
-          onChange={(e) => handleChange(e, setUsername)}
-          fullWidth
-        />
-      ) : (
-        <SelectPrefecture
-          prefecture={prefecture}
-          setPrefecture={setPrefecture}
-        />
-      )}
+      <form onSubmit={(e) => search(e)}>
+        {searchCategory === 'users' ? (
+          <TextField
+            id='username'
+            variant='standard'
+            label='ユーザーネームを入力'
+            value={username}
+            onChange={(e) => handleChange(e, setUsername)}
+            autoFocus
+            fullWidth
+          />
+        ) : searchCategory === 'prefecture' ? (
+          <SelectPrefecture
+            prefecture={prefecture}
+            setPrefecture={setPrefecture}
+            autoFocus
+          />
+        ) : (
+          <TextField
+            id='tag'
+            variant='standard'
+            label='検索したいワードを入力'
+            value={tag}
+            onChange={(e) => handleChange(e, setTag)}
+            autoFocus
+            fullWidth
+          ></TextField>
+        )}
+      </form>
 
       <Button fullWidth variant='contained' onClick={(e) => search(e)}>
         検索
@@ -118,16 +189,27 @@ const Search = () => {
 
       {searchCategory === 'users' ? (
         <CommonList
+          pagePath='Profile'
           listData={users}
           onClick={(e, userId, friendId) => addFriend(e, userId, friendId)}
           friendAdd
+          withActionButton
+        />
+      ) : searchCategory === 'prefecture' ? (
+        <PlanList
+          planList={plansByPrefecture}
+          setPlans={setPlansByPrefecture}
+          planCountVal={planCountValByPrefecture}
+          currentPageIndex={currentPageIndexByPrefecture}
+          setCurrentPageIndex={setCurrentPageIndexByPrefecture}
         />
       ) : (
         <PlanList
-          planList={plans}
-          setPlans={setPlans}
-          fetchType='prefecture'
-          fetchWord={prefecture}
+          planList={plansByTag}
+          setPlans={setPlansByTag}
+          planCountVal={planCountValByTag}
+          currentPageIndex={currentPageIndexByTag}
+          setCurrentPageIndex={setCurrentPageIndexByTag}
         />
       )}
     </SSearch>

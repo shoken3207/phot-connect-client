@@ -1,41 +1,67 @@
-import axios from 'axios';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import PlanList from '../../components/PlanList';
-import { useUserData } from '../../provider/UserDataProvider';
+import { MAX_LOAD_PLAN_COUNT } from '../../const';
+import useFetchData from '../../hooks/useFetchData';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '../../firebase/main';
 
 const Profile = () => {
   const [createPlans, setCreatePlans] = useState([]);
+  const [planCountVal, setPlanCountVal] = useState(0);
+  const [currentPageIndex, setCurrentPageIndex] = useState(1);
   const [userInfo, setUserInfo] = useState({});
-  const { userData } = useUserData();
   const router = useRouter();
-  const fetchUserInfo = async (userId) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/user/${userId}`
-    );
-    setUserInfo(response.data);
-  };
-  const fetchCreatePlans = async (userId) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/plan/${userId}/create`
-    );
-    setCreatePlans(response.data);
-  };
+  const [user] = useAuthState(auth);
+  const { fetchUserByIdFunc, fetchCreatedPlansFunc } = useFetchData();
+
   let userId;
+
+  const fetchPlans = async (userId) => {
+    const { plans, planCount } = await fetchCreatedPlansFunc(
+      userId,
+      MAX_LOAD_PLAN_COUNT * (currentPageIndex - 1),
+      MAX_LOAD_PLAN_COUNT
+    );
+    setCreatePlans(plans);
+    setPlanCountVal(planCount);
+  };
+
+  const fetchUser = async (userId) => {
+    const user = await fetchUserByIdFunc(userId);
+    setUserInfo(user);
+  };
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/auth');
+    }
+  }, [user]);
+
   useEffect(() => {
     userId = router.query.id;
-    fetchUserInfo(userId);
-    fetchCreatePlans(userId);
-  }, []);
+    fetchUser(userId);
+    fetchPlans(userId);
+  }, [currentPageIndex]);
+
+  useEffect(() => {
+    userId = router.query.id;
+    setCurrentPageIndex(1);
+    fetchUser(userId);
+    fetchPlans(userId);
+  }, [router.query.id]);
   return (
     <SProfile>
-      <SProfileHeader homeImage={userInfo.homeImage}>
+      <SProfileHeader homeImage={userInfo.home_image}>
         <div>
           <SProfileHeaderIcon>
-            <img src={userInfo.iconImage} alt='プロフィールイメージ' />
+            <img
+              src={userInfo.icon_image || '/images/noAvatar.png'}
+              alt='プロフィールイメージ'
+            />
           </SProfileHeaderIcon>
-          <h3>{userInfo.username}</h3>
+          <h3>{userInfo.username || 'unknown'}</h3>
         </div>
       </SProfileHeader>
       <SProfileInfo>
@@ -54,8 +80,9 @@ const Profile = () => {
       <PlanList
         planList={createPlans}
         setPlans={setCreatePlans}
-        fetchType='profile'
-        fetchWord={userId}
+        planCountVal={planCountVal}
+        currentPageIndex={currentPageIndex}
+        setCurrentPageIndex={setCurrentPageIndex}
       />
     </SProfile>
   );

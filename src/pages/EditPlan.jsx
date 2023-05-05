@@ -7,7 +7,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import SelectImage from '../components/SelectImage';
-import axios from 'axios';
 import { memo } from 'react';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
@@ -18,6 +17,10 @@ import { useSnackbarShowFlg } from '../provider/SnackbarShowFlgProvider';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/main';
 import SelectPrefecture from '../components/SelectPrefecture';
+import useFetchData from '../hooks/useFetchData';
+import usePlanFunc from '../hooks/usePlanFunc';
+import { useUserData } from '../provider/UserDataProvider';
+import { convertToSaveDate } from '../utils/dateUtils';
 
 const EditPlan = memo(() => {
   const router = useRouter();
@@ -25,22 +28,22 @@ const EditPlan = memo(() => {
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [place, setPlace] = useState('');
-  const [prefecture, setPrefecture] = useState(undefined);
+  const [prefecture, setPrefecture] = useState('');
   const [limit, setLimit] = useState(0);
   const [chipText, setChipText] = useState('');
   const [chipTexts, setChipTexts] = useState([]);
   const [images, setImages] = useState([]);
   const { setSnackbarInfo } = useSnackbarInfo();
   const { setSnackbarIsShow } = useSnackbarShowFlg();
+  const { userData } = useUserData();
   const [date, setDate] = useState('');
   const { uploadImages } = useUploadImage();
+  const { fetchPlanFunc } = useFetchData();
+  const { updatePlanFunc } = usePlanFunc();
   const fetchPlan = async (planId) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/plan/${planId}`
-    );
-    setPlan(response.data);
+    const response = await fetchPlanFunc(planId);
+    setPlan(response);
   };
-
   let planId;
   const [user] = useAuthState(auth);
   useEffect(() => {
@@ -55,13 +58,12 @@ const EditPlan = memo(() => {
 
   useEffect(() => {
     if (plan._id) {
-      console.log('plan: ', plan);
       setTitle(plan.title);
       setDesc(plan.desc);
       setPlace(plan.place);
       setPrefecture(plan.prefecture);
       setLimit(plan.limit);
-      setChipTexts(plan.chipTexts);
+      setChipTexts(plan.tags);
       setImages(plan.images);
       setDate(plan.date);
     }
@@ -83,20 +85,13 @@ const EditPlan = memo(() => {
   const addChipText = (e) => {
     e.preventDefault();
     if (chipText === '') return;
-    const copyChipTexts = [...chipTexts];
-    copyChipTexts.push(chipText);
-    setChipTexts(copyChipTexts);
+    setChipTexts([...chipTexts, chipText]);
     setChipText('');
   };
 
   const editPlan = async (e) => {
     e.preventDefault();
-    if (
-      title === '' ||
-      place === '' ||
-      date === '' ||
-      prefecture === undefined
-    ) {
+    if (title === '' || place === '' || date === '' || !prefecture) {
       setSnackbarInfo({
         text: 'タイトル、撮影場所、実施日、都道府県の入力は必須です。',
         severity: 'error',
@@ -119,32 +114,25 @@ const EditPlan = memo(() => {
       return;
     }
     const convertDesc = desc.replace(/\n/g, '<br>');
+    const saveDate = plan.date === plan.date ? date : convertToSaveDate(date);
     const option = {
+      user_id: userData._id,
+      plan_id: plan._id,
       title,
       place,
       prefecture,
-      date,
+      date: saveDate,
       desc: convertDesc,
       limit: convertLimit,
-      chipTexts,
+      tags: chipTexts,
       images,
-      organizerId: plan.organizerId,
     };
-    console.log(option);
 
     if (images.length > 0 && images !== plan.images) {
-      console.log('images: ', images);
       const imageNameArray = await uploadImages(images, 'plan');
-      console.log('imageNameArray', imageNameArray);
-      console.log('before: ', option.images);
       option.images = imageNameArray;
-      console.log('after: ', option.images);
-      debugger;
     }
-    await axios.put(
-      `http://localhost:5000/api/plan/${plan._id}/update`,
-      option
-    );
+    await updatePlanFunc(option);
     router.push('/Home');
   };
   return (
@@ -155,6 +143,7 @@ const EditPlan = memo(() => {
         id='title'
         label='タイトルを入力'
         value={title}
+        autoFocus
         defaultChecked
         onChange={(e) => handleChange(e, setTitle)}
       />
@@ -199,13 +188,12 @@ const EditPlan = memo(() => {
         />
       </LocalizationProvider>
       <SelectPrefecture prefecture={prefecture} setPrefecture={setPrefecture} />
-      <SAddChipText>
+      <SAddChipText onSubmit={(e) => addChipText(e)}>
         <TextField
           variant='standard'
           id='chipText'
           label='チップテキストを入力'
           fullWidth
-          multiline
           onChange={(e) => handleChange(e, setChipText)}
           value={chipText}
         />
@@ -220,15 +208,18 @@ const EditPlan = memo(() => {
       {chipTexts.length > 0 && (
         <ChipList chipTexts={chipTexts} setChipTexts={setChipTexts} />
       )}
-      <SelectImage
-        id='iconImage'
-        fullWidth
-        multiple={true}
-        accept='.png, .jpeg, .jpg'
-        text='画像を選択'
-        icon={<InsertPhotoIcon />}
-        setImage={setImages}
-      />
+      <SSelectImageWrap>
+        <SelectImage
+          id='iconImage'
+          fullWidth
+          multiple={true}
+          accept='.png, .jpeg, .jpg'
+          text='画像を選択'
+          icon={<InsertPhotoIcon />}
+          setImage={setImages}
+        />
+        {images.length === 0 && <p>画像を選択していません。</p>}
+      </SSelectImageWrap>
 
       <Button
         fullWidth
@@ -242,7 +233,7 @@ const EditPlan = memo(() => {
   );
 });
 
-const SEditPlan = styled.form`
+const SEditPlan = styled.div`
   h2 {
     text-align: center;
   }
@@ -256,7 +247,7 @@ const SEditPlan = styled.form`
   margin: 0 auto;
 `;
 
-const SAddChipText = styled.div`
+const SAddChipText = styled.form`
   display: flex;
   width: 100%;
   justify-content: space-between;
@@ -265,6 +256,17 @@ const SAddChipText = styled.div`
   }
   &:nth-child(1) {
     width: 30%;
+  }
+`;
+
+const SSelectImageWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.2rem;
+
+  > p {
+    color: red;
+    font-size: 0.8rem;
   }
 `;
 

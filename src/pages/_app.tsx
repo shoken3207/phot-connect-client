@@ -11,34 +11,32 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { auth } from '../firebase/main';
 import Layout from '../layout/Layout';
-import { SocketProvider } from '../provider/SocketProvider';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [user] = useAuthState(auth);
   const router = useRouter();
+
   useEffect(() => {
     if (!user) {
       router.push('/auth');
     }
   }, [user]);
   return (
-    <SocketProvider>
-      <SnackbarShowFlgProvider>
-        <IsLoadingFlgProvider>
-          <PageHistoryDataProvider>
-            <PanelValueProvider>
-              <UserDataProvider>
-                <SnackbarInfoProvider>
-                  <Layout>
-                    <Component {...pageProps} />
-                  </Layout>
-                </SnackbarInfoProvider>
-              </UserDataProvider>
-            </PanelValueProvider>
-          </PageHistoryDataProvider>
-        </IsLoadingFlgProvider>
-      </SnackbarShowFlgProvider>
-    </SocketProvider>
+    <SnackbarShowFlgProvider>
+      <IsLoadingFlgProvider>
+        <PageHistoryDataProvider>
+          <PanelValueProvider>
+            <UserDataProvider>
+              <SnackbarInfoProvider>
+                <Layout>
+                  <Component {...pageProps} />
+                </Layout>
+              </SnackbarInfoProvider>
+            </UserDataProvider>
+          </PanelValueProvider>
+        </PageHistoryDataProvider>
+      </IsLoadingFlgProvider>
+    </SnackbarShowFlgProvider>
   );
 }
 

@@ -1,13 +1,14 @@
 import React, { useEffect, memo, useState } from 'react';
 import CommonList from '../../src/components/CommonList';
 import { useUserData } from '../provider/UserDataProvider';
-import axios from 'axios';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/main';
 import { useRouter } from 'next/router';
+import useFetchData from '../hooks/useFetchData';
 const Chat = memo(() => {
-  const [user] = useAuthState(auth);
+  const { fetchTalkRoomsFunc } = useFetchData();
   const router = useRouter();
+  const [user] = useAuthState(auth);
   useEffect(() => {
     if (!user) {
       router.push('/auth');
@@ -16,25 +17,34 @@ const Chat = memo(() => {
   const { userData } = useUserData();
   const [talkRoomListData, setTalkRoomListData] = useState([]);
   const fetchTalkRoomListData = async () => {
-    const response = await axios.get(
-      `http://localhost:5000/api/talkRoom/${userData._id}/all`
-    );
-    const talkRoomArray = response.data.map((x) => {
+    const response = await fetchTalkRoomsFunc(userData._id);
+    const talkRooms = response.map((x) => {
       return {
-        primaryText: x.talkRoomName,
-        secondaryText: x.lastMessage,
-        iconImage: x.talkRoomIconImage,
+        primaryText: x.talk_room_name,
+        secondaryText: x.last_message,
+        iconImage: x.talk_room_icon_image,
         id: x._id,
+        badgeContent: x.unread_talk_count,
+        isPlanTalkRoom: x.is_plan_talk_room,
+        isGroupTalkRoom: x.is_group_talk_room,
+        talkRoomMembers: x.talk_room_members,
       };
     });
-    setTalkRoomListData(talkRoomArray);
+    setTalkRoomListData(talkRooms);
   };
   useEffect(() => {
-    fetchTalkRoomListData();
+    if (userData._id) {
+      fetchTalkRoomListData();
+    }
   }, [userData]);
   return (
     <div>
-      <CommonList listData={talkRoomListData} pagePath='/TalkRoom' />
+      <CommonList
+        listData={talkRoomListData}
+        setListData={setTalkRoomListData}
+        pagePath='/TalkRoom'
+        chat
+      />
     </div>
   );
 });

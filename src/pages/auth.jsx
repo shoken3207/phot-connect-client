@@ -2,35 +2,21 @@ import styles from '../styles/Home.module.css';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '../firebase/main';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import CommonButton from '../components/CommonButton';
-import SelectImage from '../components/SelectImage';
 import styled from 'styled-components';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useUserData } from '../provider/UserDataProvider';
-import axios from 'axios';
-// import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-const SContainer = styled.div`
-  width: 100%;
-  height: 100vh;
-
-  div {
-    width: 80%;
-    max-width: 1000px;
-    height: 100%;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-`;
+import useUserFunc from '../hooks/useUserFunc';
+import { Button } from '@mui/material';
+import GoogleIcon from '@mui/icons-material/Google';
+import EmailIcon from '@mui/icons-material/Email';
 
 const Home = () => {
-  const { userData, setUserData } = useUserData();
-  const [user, loading] = useAuthState(auth);
+  const { setUserData } = useUserData();
+  const [user] = useAuthState(auth);
+  const { registerUserFunc } = useUserFunc();
   const signInWithGoogle = () => {
-    signInWithPopup(auth, provider);
+    signInWithPopup(auth, provider).catch((err) => console.log('err: ', err));
   };
 
   const router = useRouter();
@@ -45,66 +31,82 @@ const Home = () => {
     const { displayName, photoURL, email } = user;
     const registerOption = {
       username: displayName,
-      iconImage: photoURL,
+      icon_image: photoURL,
       email: email,
     };
-    const response = await axios.post(
-      `http://localhost:5000/api/user/register`,
-      registerOption
-    );
-    sessionStorage.setItem('user', JSON.stringify(response.data.user));
-    setUserData(response.data.user);
-    console.log('response', response);
-    if (response.data.registered) {
+    const response = await registerUserFunc(registerOption);
+    sessionStorage.setItem('user', JSON.stringify(response.user));
+    setUserData(response.user);
+    if (response.registered) {
       router.push('/Home');
     } else {
-      router.push('/EditProfile', { first: true });
+      router.push({ pathname: '/EditProfile', query: { first: true } });
     }
   };
 
   return (
     <div className={styles.container}>
-      <>
-        {loading ? (
-          <SContainer>Loading・・・</SContainer>
-        ) : (
-          <>
-            <SContainer id='container'>
-              <div>
-                <h1 id='text'>ページ1</h1>
-              </div>
-            </SContainer>
-            <CommonButton
-              text='Googleでサインイン'
-              onClick={() => signInWithGoogle()}
-              size='large'
-            />
-            <CommonButton
-              text='サインアウト'
-              onClick={() => auth.signOut()}
-              variant='outlined'
-              color='error'
-            />
-            <SContainer id='contaner'>
-              <div>
-                <h1 id='text'>ページ2</h1>
-              </div>
-            </SContainer>
-            <SContainer id='container'>
-              <div>
-                <h1 id='text'>ページ3</h1>
-              </div>
-            </SContainer>
-            <SContainer id='container'>
-              <div>
-                <h1 id='text'>ページ4</h1>
-              </div>
-            </SContainer>
-          </>
-        )}
-      </>
+      <SContainer>
+        <SLoginButtonGroup>
+          <Button
+            style={{ textTransform: 'none' }}
+            variant='contained'
+            color='success'
+            onClick={() => signInWithGoogle()}
+            startIcon={<GoogleIcon fontSize='large' />}
+            fullWidth
+          >
+            Sign in with Google
+          </Button>
+          <Button
+            style={{ textTransform: 'none' }}
+            variant='contained'
+            color='secondary'
+            startIcon={<EmailIcon fontSize='large' />}
+            onClick={() => router.push('/SignUp')}
+            fullWidth
+          >
+            Sign up with Email
+          </Button>
+          <Button
+            style={{ textTransform: 'none' }}
+            variant='contained'
+            color='primary'
+            startIcon={<EmailIcon fontSize='large' />}
+            onClick={() => router.push('/SignIn')}
+            fullWidth
+          >
+            Sign in with Email
+          </Button>
+        </SLoginButtonGroup>
+      </SContainer>
     </div>
   );
 };
 
 export default Home;
+
+const SContainer = styled.div`
+  width: 100%;
+  height: calc(100vh - 85px);
+  background-image: linear-gradient(
+    90deg,
+    rgba(226, 207, 255, 1),
+    rgba(251, 253, 191, 1)
+  );
+  position: relative;
+
+  div {
+    position: absolute;
+    top: 4rem;
+    right: 1.5rem;
+  }
+`;
+
+const SLoginButtonGroup = styled.div`
+  width: 80%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
+`;

@@ -7,7 +7,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import SelectImage from '../components/SelectImage';
-import axios from 'axios';
 import styled from 'styled-components';
 import { useUserData } from '../provider/UserDataProvider';
 import useUploadImage from '../hooks/useUploadImage';
@@ -18,6 +17,8 @@ import { auth } from '../firebase/main';
 import { useSnackbarShowFlg } from '../provider/SnackbarShowFlgProvider';
 import { useSnackbarInfo } from '../provider/SnackbarInfoProvider';
 import SelectPrefecture from '../components/SelectPrefecture';
+import usePlanFunc from '../hooks/usePlanFunc';
+import { convertToSaveDate } from '../utils/dateUtils';
 const CreatePlan = () => {
   const { userData } = useUserData();
   const router = useRouter();
@@ -34,6 +35,7 @@ const CreatePlan = () => {
   const nowDate = new Date();
   const [date, setDate] = useState(nowDate);
   const { uploadImages } = useUploadImage();
+  const { createPlanFunc } = usePlanFunc();
 
   const [user] = useAuthState(auth);
   useEffect(() => {
@@ -65,13 +67,7 @@ const CreatePlan = () => {
   };
   const createPlan = async (e) => {
     e.preventDefault();
-    console.log(title, place, date, prefecture);
-    if (
-      title === '' ||
-      place === '' ||
-      date === '' ||
-      prefecture === undefined
-    ) {
+    if (title === '' || place === '' || date === '' || !prefecture) {
       setSnackbarInfo({
         text: 'タイトル、撮影場所、実施日、都道府県の入力は必須です。',
         severity: 'error',
@@ -86,7 +82,6 @@ const CreatePlan = () => {
       convertLimit < 0 ||
       limit === ''
     ) {
-      console.log('false');
       setSnackbarInfo({
         text: '限界参加人数は、0以上の整数で入力してください。',
         severity: 'warning',
@@ -95,34 +90,25 @@ const CreatePlan = () => {
       return;
     }
     const convertDesc = desc.replace(/\n/g, '<br>');
+    const saveDate = convertToSaveDate(date);
     const option = {
       title,
       place,
       prefecture,
-      date,
+      date: saveDate,
       desc: convertDesc,
       limit: convertLimit,
-      chipTexts: chipTexts,
-      organizerId: userData._id,
-      organizerIconImage: userData.iconImage,
+      tags: chipTexts,
+      organizer_id: userData._id,
+      organizer_icon_image: userData.icon_image,
     };
-
     if (images.length > 0) {
       const imageNameArray = await uploadImages(images, 'plan');
       option.images = imageNameArray;
     } else {
-      option.images = ['/images/noImage.jpg'];
+      option.images = [];
     }
-    const talkRoom = await axios.post(
-      'http://localhost:5000/api/talkRoom/create',
-      {
-        talkRoomIconImage: option.images[0],
-        talkRoomName: option.title,
-        members: [userData._id],
-      }
-    );
-    option.talkRoomId = talkRoom.data._id;
-    await axios.post(`http://localhost:5000/api/plan/create`, option);
+    await createPlanFunc(option);
     router.push('/Home');
   };
   return (
@@ -132,12 +118,15 @@ const CreatePlan = () => {
         id='title'
         label='タイトルを入力'
         value={title}
+        variant='standard'
+        autoFocus
         onChange={(e) => handleChange(e, setTitle)}
       />
       <TextField
         id='place'
         label='撮影場所を入力'
         vaule={place}
+        variant='standard'
         onChange={(e) => handleChange(e, setPlace)}
       />
       <TextField
@@ -146,6 +135,7 @@ const CreatePlan = () => {
         fullWidth
         multiline
         value={desc}
+        variant='standard'
         onChange={(e) => handleChange(e, setDesc)}
       />
       <TextField
@@ -153,6 +143,7 @@ const CreatePlan = () => {
         label='制限人数を入力（特になければ0のまま）'
         fullWidth
         value={limit}
+        variant='standard'
         onChange={(e) => handleChange(e, setLimit)}
       />
       <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -162,16 +153,17 @@ const CreatePlan = () => {
           inputFormat='yyyy/MM/dd'
           onChange={changeDate}
           value={date}
-          renderInput={(params) => <TextField {...params} fullWidth />}
+          renderInput={(params) => (
+            <TextField variant='standard' {...params} fullWidth />
+          )}
         />
       </LocalizationProvider>
       <SelectPrefecture prefecture={prefecture} setPrefecture={setPrefecture} />
-      <SAddChipText>
+      <SAddChipText onSubmit={(e) => addChipText(e)}>
         <TextField
           id='desc'
           label='チップテキストを入力'
           fullWidth
-          multiline
           variant='standard'
           value={chipText}
           onChange={(e) => handleChange(e, setChipText)}
@@ -187,15 +179,18 @@ const CreatePlan = () => {
       {chipTexts.length > 0 && (
         <ChipList chipTexts={chipTexts} setChipTexts={setChipTexts} />
       )}
-      <SelectImage
-        id='iconImage'
-        fullWidth
-        multiple={true}
-        accept='.png, .jpeg, .jpg'
-        text='画像を選択'
-        icon={<InsertPhotoIcon />}
-        setImage={setImages}
-      />
+      <SSelectImageWrap>
+        <SelectImage
+          id='iconImage'
+          fullWidth
+          multiple={true}
+          accept='.png, .jpeg, .jpg'
+          text='画像を選択'
+          icon={<InsertPhotoIcon />}
+          setImage={setImages}
+        />
+        {images.length === 0 && <p>画像が選択されていません。</p>}
+      </SSelectImageWrap>
 
       <Button
         fullWidth
@@ -209,7 +204,7 @@ const CreatePlan = () => {
   );
 };
 
-const SCreatePlan = styled.form`
+const SCreatePlan = styled.div`
   h2 {
     text-align: center;
   }
@@ -223,7 +218,7 @@ const SCreatePlan = styled.form`
   margin: 0 auto;
 `;
 
-const SAddChipText = styled.div`
+const SAddChipText = styled.form`
   display: flex;
   width: 100%;
   justify-content: space-between;
@@ -232,6 +227,17 @@ const SAddChipText = styled.div`
   }
   &:nth-child(1) {
     width: 30%;
+  }
+`;
+
+const SSelectImageWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.2rem;
+
+  > p {
+    color: red;
+    font-size: 0.8rem;
   }
 `;
 

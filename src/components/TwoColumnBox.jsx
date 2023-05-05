@@ -19,9 +19,9 @@ const STwoColumn = styled.div`
   opacity: ${(props) => (props.isDisabled ? 0.7 : 1)};
 
   &:first-child {
-    flex: 7;
+    width: 300px;
   }
   &:last-child {
-    flex: 2.5;
+    width: 25%;
   }
 `;

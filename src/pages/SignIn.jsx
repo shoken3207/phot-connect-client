@@ -1,12 +1,13 @@
-import { Button, TextField } from '@mui/material';
+import { Avatar, Button, TextField } from '@mui/material';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { useSnackbarInfo } from '../provider/SnackbarInfoProvider';
 import { useSnackbarShowFlg } from '../provider/SnackbarShowFlgProvider';
-import axios from 'axios';
 import { useUserData } from '../provider/UserDataProvider';
+import useUserFunc from '../hooks/useUserFunc';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -14,12 +15,14 @@ const SignIn = () => {
   const { setUserData } = useUserData();
   const { setSnackbarInfo } = useSnackbarInfo();
   const { setSnackbarIsShow } = useSnackbarShowFlg();
+  const { registerUserFunc } = useUserFunc();
   const router = useRouter();
   const auth = getAuth();
   const handleInput = (e, setFunc) => {
     setFunc(e.target.value);
   };
-  const signIn = () => {
+  const signIn = (e) => {
+    e.preventDefault();
     if (email === '' || password === '') {
       setSnackbarInfo({
         text: '入力されていない箇所があります。',
@@ -31,34 +34,31 @@ const SignIn = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then(async (userCredential) => {
         const user = userCredential.user;
-        console.log(user);
-        const response = await axios.post(
-          `http://localhost:5000/api/user/register`,
-          { email: user.email }
-        );
-        sessionStorage.setItem('user', JSON.stringify(response.data.user));
-        setUserData(response.data.user);
-        console.log('response', response);
-        if (response.data.registered) {
+        const response = await registerUserFunc({ email: user.email });
+
+        sessionStorage.setItem('user', JSON.stringify(response.user));
+        setUserData(response.user);
+        if (response.registered) {
           router.push('/Home');
         } else {
-          router.push('/EditProfile', { first: true });
+          router.push({ pathname: '/EditProfile', query: { first: true } });
         }
       })
       .catch((err) => {
-        const errorCode = err.code;
         const errorMessage = err.message;
         setSnackbarInfo({ text: errorMessage, severity: 'warning' });
         setSnackbarIsShow(true);
-        console.log('errorCode: ', errorCode);
-        console.log('errorMessage: ', errorMessage);
       });
   };
   return (
     <SWrap>
-      <SBox>
-        <h3>Sign In</h3>
-        <p>メールアドレス、パスワードを入力してください。</p>
+      <SBox onSubmit={(e) => signIn(e)}>
+        <div>
+          <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
+            <LockOpenIcon />
+          </Avatar>
+          <h3>Sign In</h3>
+        </div>
         <div>
           <TextField
             onChange={(e) => handleInput(e, setEmail)}
@@ -68,6 +68,11 @@ const SignIn = () => {
             required
             autoFocus
             autoComplete='email'
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                signIn(event);
+              }
+            }}
           />
           <TextField
             onChange={(e) => handleInput(e, setPassword)}
@@ -77,6 +82,11 @@ const SignIn = () => {
             required
             autoComplete='password'
             type='password'
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                signIn(event);
+              }
+            }}
           />
         </div>
         <SButtonGroup>
@@ -108,8 +118,8 @@ const SWrap = styled.div`
   align-items: center;
 `;
 
-const SBox = styled.div`
-  max-width: 560px;
+const SBox = styled.form`
+  max-width: 460px;
   width: 90%;
   padding: 1.8rem 2rem;
   display: flex;
@@ -119,18 +129,20 @@ const SBox = styled.div`
   box-shadow: 8px 8px 19px -6px #777777;
   border-radius: 10px;
 
-  > h3 {
-    text-align: center;
-    font-size: 1.6rem;
-    font-weight: 450;
-  }
-
-  > p {
-    font-size: 0.9rem;
-  }
-
   > div {
     &:nth-of-type(1) {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      row-gap: 0.2rem;
+
+      > h3 {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 450;
+      }
+    }
+    &:nth-of-type(2) {
       display: flex;
       flex-direction: column;
       row-gap: 0.7rem;

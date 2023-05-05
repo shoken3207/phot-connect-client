@@ -1,55 +1,102 @@
-import React, { memo, useEffect, useState, useCallback } from 'react';
+import React, { memo, useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useUserData } from '../../provider/UserDataProvider';
 import MessageList from '../../components/MessageList';
-import axios from 'axios';
 import SendTalk from '../../components/SendTalk';
 import useFetchData from '../../hooks/useFetchData';
 import styled from 'styled-components';
 import io from 'socket.io-client';
+import useChatFunc from '../../hooks/useChatFunc';
+import { MAX_LOAD_TALK_COUNT, SERVER_URL } from '../../const';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '../../firebase/main';
 
 const TalkRoom = memo(() => {
   const router = useRouter();
+  const [user] = useAuthState(auth);
   const talkRoomId = router.query.id;
   const { userData } = useUserData();
-  const [talkRoomMembers, setTalkRoomMembers] = useState([]);
-  const [allTalkData, setAllTalkData] = useState([]);
-  const { fetchAllTalkData } = useFetchData();
-  const socket = io('http://localhost:5000');
+  const [talkRoom, setTalkRoom] = useState({});
+  const [talks, setTalks] = useState([]);
+  const [talkCount, setTalkCount] = useState(0);
+  const [talksLoadCount, setTalksLoadCount] = useState(0);
+  const { fetchTalksFunc, fetchTalkRoomFunc } = useFetchData();
+  const { readTalksFunc } = useChatFunc();
+  const socketRef = useRef(null);
 
   //   トークルーム内のメンバーを取得
-  const fetchTalkRoomMembers = async () => {
-    const response = await axios.get(
-      `http://localhost:5000/api/talkRoom/${talkRoomId}/members`
-    );
-    setTalkRoomMembers(response.data);
-  };
+  const fetchTalkRoom = useCallback(async () => {
+    const response = await fetchTalkRoomFunc(userData._id, talkRoomId);
+    setTalkRoom(response);
+  }, []);
   // トークルーム内の全てのトークを取得
-  const fetchAllTalk = useCallback(async (talkRoomId) => {
-    const response = await fetchAllTalkData(talkRoomId);
-    setAllTalkData(response);
+  const fetchTalks = useCallback(async (talkRoomId, start, limit) => {
+    const { talks: addTalks, talkCount } = await fetchTalksFunc(
+      talkRoomId,
+      start,
+      limit
+    );
+    if (start === 0) {
+      setTalks(addTalks);
+    } else {
+      setTalks((prevTalks) => [...addTalks, ...prevTalks]);
+    }
+    setTalkCount(talkCount);
   }, []);
   useEffect(() => {
-    fetchTalkRoomMembers();
-    fetchAllTalk(talkRoomId);
+    if (!user) {
+      router.push('/auth');
+    }
+  }, [user]);
+  useEffect(() => {
+    fetchTalkRoom();
+    socketRef.current = io(SERVER_URL);
+    socketRef.current.on('connect', () => {
+      console.log('WebSocket connected');
+    });
 
-    socket.on('received_message', (data) => {
-      fetchAllTalk(data.talkRoomId);
+    socketRef.current.on('received_message', async (data) => {
+      if (
+        router.pathname.split('/')[1] === 'TalkRoom' &&
+        router.query.id === data.talkRoomId
+      ) {
+        await readTalksFunc({
+          talk_room_id: data.talkRoomId,
+          reader_id: userData._id,
+        });
+        await fetchTalks(data.talkRoomId, 0, MAX_LOAD_TALK_COUNT);
+      }
     });
 
     return () => {
-      socket.close();
+      socketRef.current.disconnect();
     };
   }, []);
 
+  useEffect(() => {
+    if (talksLoadCount === 0 || talks.length < talkCount) {
+      fetchTalks(
+        talkRoomId,
+        talksLoadCount * MAX_LOAD_TALK_COUNT,
+        MAX_LOAD_TALK_COUNT
+      );
+    }
+  }, [talksLoadCount]);
+
   return (
     <SChat>
-      <MessageList allTalkData={allTalkData} />
+      <MessageList
+        talks={talks}
+        setTalksLoadCount={setTalksLoadCount}
+        setTalks={setTalks}
+        talkRoom={talkRoom}
+        fetchTalks={fetchTalks}
+      />
       <SendTalk
         userId={userData._id}
         talkRoomId={talkRoomId}
-        iconImage={userData.iconImage}
-        fetchAllTalkData={fetchAllTalkData}
+        setTalksLoadCount={setTalksLoadCount}
+        iconImage={userData.icon_image}
       />
     </SChat>
   );
@@ -58,6 +105,6 @@ const TalkRoom = memo(() => {
 export default TalkRoom;
 
 const SChat = styled.div`
-  max-width: 500px;
+  max-width: 800px;
   margin: 0 auto;
 `;

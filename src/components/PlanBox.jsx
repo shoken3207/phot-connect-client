@@ -13,105 +13,465 @@ import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import GroupRemoveIcon from '@mui/icons-material/GroupRemove';
 import Chip from '@mui/material/Chip';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useUserData } from '../provider/UserDataProvider';
 import { useRouter } from 'next/router';
+import usePlanFunc from '../hooks/usePlanFunc';
+import { convertToSaveDate, getPlanDate } from '../utils/dateUtils';
+import { IconButton, Tooltip } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import EmojiPeopleIcon from '@mui/icons-material/EmojiPeople';
+import TimerOffIcon from '@mui/icons-material/TimerOff';
+import useChatFunc from '../hooks/useChatFunc';
+import CommonMenu from './CommonMenu';
+import CommonDialog from './CommonDialog';
+import PersonList from './CommonList';
+import ConfirmDialog from './ConfirmDialog';
+import MoreTimeIcon from '@mui/icons-material/MoreTime';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { CLOSED_PLAN_IMAGE_PATH } from '../const';
+import { convertList } from '../utils/convertData';
+import { useIsLoadingFlg } from '../provider/IsLoadingFlgProvider';
+import { useSnackbarInfo } from '../provider/SnackbarInfoProvider';
+import { useSnackbarShowFlg } from '../provider/SnackbarShowFlgProvider';
+import {
+  isClosedPlanByDeadLine,
+  isClosedPlanByDefaultDeadLine,
+} from '../utils/planUtils';
 import useFetchData from '../hooks/useFetchData';
-import useUpdatePlan from '../hooks/useUpdatePlan';
-import { getPlanDate } from '../utils/dateUtils';
 
 const PlanBox = ({
   planId,
   place,
   images,
   date,
+  deadLine,
   title,
+  limit,
   desc,
   prefecture,
   organizerId,
   organizerIconImage,
   participants,
+  likers,
+  blackUsers,
   chipTexts,
   talkRoomId,
   setPlans,
-  fetchType,
-  fetchWord,
+  plans,
 }) => {
   const [readMore, setReadMore] = useState(false);
   const [isFront, setIsFront] = useState(true);
-  const [descHeight, setDescHeight] = useState(null);
-  const [planBackHeight, setPlanBackHeight] = useState(null);
-  const planDescRef = useRef(null);
+  const [contentsHeight, setContentsHeight] = useState(null);
+  const [likersListIsOpen, setLikersListIsOpen] = useState(false);
+  const [participantsListIsOpen, setParticipantsIsOpen] = useState(false);
+  const [participantsExceptListIsOpen, setParticipantsExceptIsOpen] =
+    useState(false);
+  const [participantsAcceptListIsOpen, setParticipantsAcceptIsOpen] =
+    useState(false);
+  const [closeConfirmDialogIsOpen, setCloseConfirmDialogIsOpen] =
+    useState(false);
+  const [exceptConfirmDialogIsOpen, setExceptConfirmDialogIsOpen] =
+    useState(false);
+  const [acceptConfirmDialogIsOpen, setAcceptConfirmDialogIsOpen] =
+    useState(false);
+  const [deleteConfirmDialogIsOpen, setDeleteConfirmDialogIsOpen] =
+    useState(false);
+  const [likersArray, setLikersArray] = useState([]);
+  const [participantsArray, setParticipantsArray] = useState([]);
+  const [blackUserArray, setBlackUserArray] = useState([]);
+  const [menuList, setMenuList] = useState([]);
+  const [selectUserId, setSelectUserId] = useState(null);
+  const planBackContentsRef = useRef(null);
   const planBackRef = useRef(null);
   const { userData } = useUserData();
-  const { fetchHomePlans, fetchCreatePlans, fetchPrefecturePlans } =
-    useFetchData();
-  const { participation, except } = useUpdatePlan();
+  const { readTalksFunc } = useChatFunc();
+  const { isLoading } = useIsLoadingFlg();
+  const { fetchPlanFunc } = useFetchData();
+  const {
+    participationPlanFunc,
+    leavePlanFunc,
+    exceptPlanFunc,
+    acceptPlanFunc,
+    likePlanFunc,
+    closePlanFunc,
+    deletePlanFunc,
+    resumePlanFunc,
+  } = usePlanFunc();
+  const { setSnackbarInfo } = useSnackbarInfo();
+  const { setSnackbarIsShow } = useSnackbarShowFlg();
+  const isLiked = () => {
+    const liker = likers.find((x) => x._id === userData._id);
+    return !!liker;
+  };
+  const isParticipated = (participants) => {
+    const participation = participants.find((x) => x._id === userData._id);
+    return !!participation;
+  };
   const router = useRouter();
+
   useEffect(() => {
-    setDescHeight(planDescRef.current.scrollHeight);
-  }, []);
-  useEffect(() => {
-    if (readMore) {
-      setPlanBackHeight(planBackRef.current.offsetHeight);
-    } else {
-      setPlanBackHeight(null);
+    const menuArray = [
+      {
+        text: 'いいねした人を表示',
+        icon: <FavoriteIcon />,
+        onClickFunc: (e) => dispLikers(e),
+      },
+      {
+        text: '参加者を表示',
+        icon: <EmojiPeopleIcon />,
+        onClickFunc: (e) => dispParticipants(e),
+      },
+    ];
+
+    if (organizerId === userData._id) {
+      menuArray.push({
+        text: 'プランを削除する',
+        icon: <DeleteIcon />,
+        onClickFunc: (e) => setDeleteConfirmDialogIsOpen(true),
+      });
     }
-  }, [readMore]);
+
+    if (
+      organizerId === userData._id &&
+      deadLine === '' &&
+      isClosedPlanByDefaultDeadLine(date) === false &&
+      (limit === 0 || (limit > 0 && limit > participants.length))
+    ) {
+      menuArray.push({
+        text: '募集を締め切る',
+        icon: <TimerOffIcon />,
+        onClickFunc: (e) => setCloseConfirmDialogIsOpen(true),
+      });
+    } else if (
+      organizerId === userData._id &&
+      deadLine !== '' &&
+      isClosedPlanByDefaultDeadLine(date) === false &&
+      (limit === 0 || (limit > 0 && limit > participants.length))
+    ) {
+      menuArray.push({
+        text: '募集を再開する',
+        icon: <MoreTimeIcon />,
+        onClickFunc: (e) => resumePlan(e),
+      });
+    }
+
+    if (organizerId === userData._id && participants.length > 0) {
+      menuArray.push({
+        text: '参加者を除外する',
+        icon: <GroupRemoveIcon />,
+        onClickFunc: (e) => dispExceptParticipants(e),
+      });
+    }
+    if (organizerId === userData._id && blackUsers.length > 0) {
+      menuArray.push({
+        text: 'プランへの参加を許可する',
+        icon: <GroupRemoveIcon />,
+        onClickFunc: (e) => dispAcceptParticipants(e),
+      });
+    }
+    setMenuList(menuArray);
+    setParticipantsArray(participants);
+    setBlackUserArray(blackUsers);
+    setLikersArray(likers);
+    setContentsHeight(planBackContentsRef.current.scrollHeight);
+  }, [plans]);
+
   useEffect(() => {
     if (isFront) {
-      setPlanBackHeight(null);
       setReadMore(false);
     }
   }, [isFront]);
-  const fetchFunc = async () => {
-    let response;
-    if (fetchType === 'home') {
-      response = await fetchHomePlans(fetchWord);
-    } else if (fetchType === 'profile') {
-      response = await fetchCreatePlans(fetchWord);
-    } else if (fetchType === 'prefecture') {
-      response = await fetchPrefecturePlans(fetchWord);
-    }
-    setPlans(response);
+
+  const dispLikers = () => {
+    const convertLikers = convertList(likers);
+    setLikersArray([...convertLikers]);
+    setLikersListIsOpen(true);
   };
+  const dispParticipants = () => {
+    const convertParticipants = convertList(participants);
+    setParticipantsArray([...convertParticipants]);
+    setParticipantsIsOpen(true);
+  };
+  const dispExceptParticipants = () => {
+    const convertParticipants = convertList(participants);
+    setParticipantsArray([...convertParticipants]);
+    setParticipantsExceptIsOpen(true);
+  };
+  const dispAcceptParticipants = () => {
+    const convertBlackUsers = convertList(blackUsers);
+    setBlackUserArray([...convertBlackUsers]);
+    setParticipantsAcceptIsOpen(true);
+  };
+
+  const deletePlan = async (e) => {
+    e.preventDefault();
+    const { success } = await deletePlanFunc({
+      plan_id: planId,
+      user_id: userData._id,
+    });
+    if (success) {
+      const copyPlans = [...plans];
+      const planIndex = copyPlans.findIndex((plan) => plan._id === planId);
+      copyPlans.splice(planIndex, 1);
+      setPlans(copyPlans);
+    }
+  };
+
+  const closePlan = async (e) => {
+    e.preventDefault();
+    const { success } = await closePlanFunc({
+      plan_id: planId,
+      user_id: userData._id,
+    });
+    if (success) {
+      const copyPlans = [...plans];
+      const planIndex = copyPlans.findIndex((plan) => plan._id === planId);
+      const nowDate = new Date();
+      copyPlans[planIndex].dead_line = convertToSaveDate(nowDate);
+      copyPlans[planIndex].images.unshift(CLOSED_PLAN_IMAGE_PATH);
+      setPlans(copyPlans);
+    }
+  };
+
+  const resumePlan = async (e) => {
+    e.preventDefault();
+    const { success } = await resumePlanFunc({
+      plan_id: planId,
+      user_id: userData._id,
+    });
+    if (success) {
+      const copyPlans = [...plans];
+      const planIndex = copyPlans.findIndex((plan) => plan._id === planId);
+      copyPlans[planIndex].dead_line = '';
+      copyPlans[planIndex].images.splice(0, 1);
+      setPlans(copyPlans);
+    }
+  };
+
+  const likePlan = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const { success } = await likePlanFunc({
+      plan_id: planId,
+      liker_id: userData._id,
+    });
+    if (success) {
+      const copyPlans = [...plans];
+      const planIndex = copyPlans.findIndex((plan) => plan._id === planId);
+      const likerIndex = copyPlans[planIndex].likers.findIndex(
+        (liker) => liker._id === userData._id
+      );
+      if (likerIndex === -1) {
+        copyPlans[planIndex].likers.push({
+          desc: userData.desc,
+          icon_image: userData.icon_image,
+          username: userData.username,
+          _id: userData._id,
+        });
+      } else {
+        copyPlans[planIndex].likers.splice(likerIndex, 1);
+      }
+      setPlans(copyPlans);
+    }
+  };
+
   const participationPlan = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    await participation(planId, talkRoomId, userData._id);
-    await fetchFunc();
+    const { success } = await participationPlanFunc({
+      plan_id: planId,
+      user_id: userData._id,
+    });
+    if (success) {
+      const copyPlans = [...plans];
+      const planIndex = copyPlans.findIndex((plan) => plan._id === planId);
+      copyPlans[planIndex].participants.push({
+        desc: userData.desc,
+        icon_image: userData.icon_image,
+        username: userData.username,
+        _id: userData._id,
+      });
+      if (
+        copyPlans[planIndex].limit > 0 &&
+        copyPlans[planIndex].limit === copyPlans[planIndex].participants.length
+      ) {
+        copyPlans[planIndex].images.unshift(CLOSED_PLAN_IMAGE_PATH);
+      }
+      setPlans(copyPlans);
+    }
   };
-  const exceptPlan = async (e) => {
+
+  const leavePlan = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    await except(planId, talkRoomId, userData._id);
-    await fetchFunc();
+    const { success } = await leavePlanFunc({
+      plan_id: planId,
+      user_id: userData._id,
+    });
+    if (success) {
+      const copyPlans = [...plans];
+      const planIndex = copyPlans.findIndex((plan) => plan._id === planId);
+      const participantIndex = copyPlans[planIndex].participants.findIndex(
+        (participant) => participant._id === userData._id
+      );
+      copyPlans[planIndex].participants.splice(participantIndex, 1);
+      if (
+        copyPlans[planIndex].limit > 0 &&
+        copyPlans[planIndex].limit ===
+          copyPlans[planIndex].participants.length + 1
+      ) {
+        copyPlans[planIndex].images.splice(0, 1);
+      }
+      setPlans(copyPlans);
+    }
   };
-  const readMoreDesc = (e) => {
+
+  const selectExceptUser = (e, participantId) => {
+    e.preventDefault();
+    setSelectUserId(participantId);
+    setExceptConfirmDialogIsOpen(true);
+  };
+
+  const selectAcceptUser = (e, blackUserId) => {
+    e.preventDefault();
+    setSelectUserId(blackUserId);
+    setAcceptConfirmDialogIsOpen(true);
+  };
+
+  const exceptPlan = async (e, participantId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const { success } = await exceptPlanFunc({
+      plan_id: planId,
+      user_id: participantId,
+      organizer_id: userData._id,
+    });
+    if (success) {
+      const copyPlans = [...plans];
+      const planIndex = copyPlans.findIndex((plan) => plan._id === planId);
+      const participantIndex = copyPlans[planIndex].participants.findIndex(
+        (participant) => participant._id === participantId
+      );
+      const user = copyPlans[planIndex].participants.splice(
+        participantIndex,
+        1
+      )[0];
+      const { desc, icon_image, username, _id } = user;
+      copyPlans[planIndex].blackUsers.push({
+        _id,
+        username,
+        icon_image,
+        desc,
+      });
+      if (
+        copyPlans[planIndex].limit > 0 &&
+        copyPlans[planIndex].limit ===
+          copyPlans[planIndex].participants.length + 1
+      ) {
+        copyPlans[planIndex].images.splice(0, 1);
+      }
+      setPlans(copyPlans);
+    }
+  };
+
+  const acceptPlan = async (e, blackUserId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const { success } = await acceptPlanFunc({
+      plan_id: planId,
+      user_id: blackUserId,
+      organizer_id: userData._id,
+    });
+    if (success) {
+      const copyPlans = [...plans];
+      const planIndex = copyPlans.findIndex((plan) => plan._id === planId);
+      const blackUserIndex = copyPlans[planIndex].blackUsers.findIndex(
+        (blackUser) => blackUser._id === blackUserId
+      );
+      copyPlans[planIndex].blackUsers.splice(blackUserIndex, 1);
+      setPlans(copyPlans);
+    }
+  };
+
+  const tagClick = (e, chipText) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push({
+      pathname: '/Search',
+      query: { searchCategory: 'tag', tag: chipText },
+    });
+  };
+
+  const prefectureClick = (e, prefecture) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push({
+      pathname: '/Search',
+      query: { searchCategory: 'prefecture', prefecture: prefecture },
+    });
+  };
+
+  const readMoreContents = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setReadMore((prev) => !prev);
   };
+
+  const transitionTalkRoom = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const plan = await fetchPlanFunc(planId);
+    if (
+      plan.organizer_id !== userData._id &&
+      !isParticipated(plan.participants)
+    ) {
+      setSnackbarInfo({
+        text: 'あなたは、プランの作成者に追放されました。',
+        severity: 'warning',
+      });
+      setSnackbarIsShow(true);
+
+      return;
+    }
+
+    await readTalksFunc({ talk_room_id: talkRoomId, reader_id: userData._id });
+    router.push({ pathname: `/TalkRoom/${talkRoomId}` });
+  };
+
   return (
     <SPlanBox
       isFront={isFront}
       readMore={readMore}
-      planBackHeight={planBackHeight}
-      onClick={(e) => console.log(e.target.scrollHeight)}
+      contentsHeight={contentsHeight}
+      isLoading={isLoading}
     >
       <SFront>
         <SFrontHeader>
-          <LinkWrap href={`/Profile/${organizerId}`}>
-            <div>
-              <img src={organizerIconImage} alt='' />
-            </div>
-          </LinkWrap>
           <div>
-            <h3>{title}</h3>
-            <p>{prefecture}</p>
+            <LinkWrap href={`/Profile/${organizerId}`}>
+              <div>
+                <img
+                  src={organizerIconImage || '/images/noAvatar.png'}
+                  alt=''
+                />
+              </div>
+            </LinkWrap>
+            <div>
+              <h3>{title}</h3>
+              <Tooltip title='県で検索'>
+                <p onClick={(e) => prefectureClick(e, prefecture)}>
+                  {prefecture}
+                </p>
+              </Tooltip>
+            </div>
           </div>
+          <CommonMenu menuArray={menuList} />
         </SFrontHeader>
         <SFrontMedia>
           <SwiperBox
+            grabCursor={true}
             spaceBetween={0}
             slidesPerView={1}
             navigation={true}
@@ -119,43 +479,80 @@ const PlanBox = ({
             modules={[Navigation, Pagination]}
           >
             {images.map((image) => (
-              <SwiperItem key={image}>
-                <img src={image} />
-              </SwiperItem>
+              <SwiperSlide key={image}>
+                <img style={{ width: '100%', height: '100%' }} src={image} />
+              </SwiperSlide>
             ))}
           </SwiperBox>
         </SFrontMedia>
         <SFrontFooter>
           <div>
             <p>
-              撮影場所: <span>{place}</span>
+              <span>撮影場所:</span> <span>{place}</span>
             </p>
             <p>
-              日時: <span>{getPlanDate(date)}</span>
+              <span>日時:</span> <span>{getPlanDate(date)}</span>
             </p>
           </div>
           <div>
-            <CommonButton
-              onClick={() => setIsFront((prev) => !prev)}
-              variant=''
-              startIcon={<LoopIcon />}
-            />
-            <img src='/images/heart.png' alt='' />
+            <Tooltip title='詳細をみる'>
+              <IconButton
+                color='inherit'
+                onClick={() => setIsFront((prev) => !prev)}
+              >
+                <LoopIcon fontSize='medium' />
+              </IconButton>
+            </Tooltip>
+            {isLiked() ? (
+              <IconButton color='error' onClick={(e) => likePlan(e)}>
+                <FavoriteIcon fontSize='large' />
+              </IconButton>
+            ) : (
+              <IconButton color='error' onClick={(e) => likePlan(e)}>
+                <FavoriteBorderIcon fontSize='large' />
+              </IconButton>
+            )}
           </div>
         </SFrontFooter>
       </SFront>
       <SBack ref={planBackRef} onClick={() => setIsFront((prev) => !prev)}>
-        <SBackContents isFront={isFront} chipTexts={chipTexts} desc={desc}>
-          <h2>{title}</h2>
-          <SPlanDesc readMore={readMore} descHeight={descHeight}>
-            <p ref={planDescRef} dangerouslySetInnerHTML={{ __html: desc }}></p>
-            <div onClick={(e) => readMoreDesc(e)}>続きを見る</div>
-          </SPlanDesc>
-          <div>
-            {chipTexts.map((chipText) => (
-              <Chip key={chipText} label={chipText} />
-            ))}
-          </div>
+        <SBackWrapper
+          isFront={isFront}
+          chipTexts={chipTexts}
+          desc={desc}
+          limit={limit}
+          participants={participants}
+        >
+          <SBackContents
+            chipTexts={chipTexts}
+            desc={desc}
+            readMore={readMore}
+            contentsHeight={contentsHeight}
+            ref={planBackContentsRef}
+          >
+            <div>
+              <h2>{title}</h2>
+              <p dangerouslySetInnerHTML={{ __html: desc }}></p>
+              <div>
+                {chipTexts.map((chipText) => (
+                  <Tooltip title='タグで検索'>
+                    <Chip
+                      key={chipText}
+                      label={chipText}
+                      onClick={(e) => tagClick(e, chipText)}
+                    />
+                  </Tooltip>
+                ))}
+              </div>
+            </div>
+            <div onClick={(e) => readMoreContents(e)}>
+              <Tooltip title='もっと見る'>
+                <IconButton>
+                  <ExpandMoreIcon fontSize='large' />
+                </IconButton>
+              </Tooltip>
+            </div>
+          </SBackContents>
           <div>
             {organizerId === userData._id ? (
               <CommonButton
@@ -166,11 +563,11 @@ const PlanBox = ({
                   router.push({ pathname: '/EditPlan', query: { planId } })
                 }
               />
-            ) : participants.includes(userData._id) ? (
+            ) : isParticipated(participants) ? (
               <CommonButton
                 startIcon={<GroupRemoveIcon />}
                 text='降りる'
-                onClick={(e) => exceptPlan(e)}
+                onClick={(e) => leavePlan(e)}
                 color='error'
               />
             ) : (
@@ -178,44 +575,128 @@ const PlanBox = ({
                 startIcon={<GroupAddIcon />}
                 onClick={(e) => participationPlan(e)}
                 text='参加する'
+                disabled={
+                  (limit > 0 && limit <= participants.length) || deadLine === ''
+                    ? isClosedPlanByDefaultDeadLine(date)
+                    : isClosedPlanByDeadLine(deadLine)
+                }
               />
             )}
-
             <CommonButton
               color='success'
               disabled={
-                !participants.includes(userData._id) &&
-                organizerId !== userData._id
+                !isParticipated(participants) && organizerId !== userData._id
               }
               startIcon={<ChatIcon />}
-              onClick={(e) =>
-                router.push({ pathname: `/TalkRoom/${talkRoomId}` })
-              }
+              onClick={(e) => transitionTalkRoom(e)}
               text='チャット'
             />
           </div>
-          <h3>参加者: {participants.length}人</h3>
-        </SBackContents>
+          <h3>
+            {limit === 0
+              ? `参加者: ${participants.length}人`
+              : participants.length === limit
+              ? '参加人数が上限に達しました'
+              : `募集人数は、残り${limit - participants.length}人です`}
+          </h3>
+        </SBackWrapper>
       </SBack>
+      <CommonDialog
+        dialogTitle='いいねした人を表示'
+        isOpen={likersListIsOpen}
+        setIsOpen={setLikersListIsOpen}
+      >
+        <PersonList listData={likersArray} pagePath='/Profile' />
+      </CommonDialog>
+      <CommonDialog
+        dialogTitle='プランの参加者を表示'
+        isOpen={participantsListIsOpen}
+        setIsOpen={setParticipantsIsOpen}
+      >
+        <PersonList listData={participantsArray} pagePath='/Profile' />
+      </CommonDialog>
+      <CommonDialog
+        dialogTitle='参加者をプランから除外'
+        isOpen={participantsExceptListIsOpen}
+        setIsOpen={setParticipantsExceptIsOpen}
+      >
+        <PersonList
+          listData={participantsArray}
+          pagePath='/Profile'
+          participants={participants}
+          onClick={(e, participantId) => selectExceptUser(e, participantId)}
+          withActionButton
+          participantsAction
+        />
+      </CommonDialog>
+      <CommonDialog
+        dialogTitle='ブラックリストから除去'
+        isOpen={participantsAcceptListIsOpen}
+        setIsOpen={setParticipantsAcceptIsOpen}
+      >
+        <PersonList
+          listData={blackUserArray}
+          pagePath='/Profile'
+          participants={participants}
+          onClick={(e, blackUserId) => selectAcceptUser(e, blackUserId)}
+          withActionButton
+          participantsAction
+        />
+      </CommonDialog>
+      <ConfirmDialog
+        isOpen={closeConfirmDialogIsOpen}
+        setIsOpen={setCloseConfirmDialogIsOpen}
+        primaryText='本当にプランの参加者募集を締め切りますか？'
+        secondaryText='募集を締め切ると、他の人はこのプランに参加できなくなります。'
+        onClick={(e) => closePlan(e)}
+      />
+      <ConfirmDialog
+        isOpen={exceptConfirmDialogIsOpen}
+        setIsOpen={setExceptConfirmDialogIsOpen}
+        primaryText='本当にこのユーザーをプランから除外しますか？'
+        secondaryText='除外すると、このユーザーの意思でプランに参加できなくなります。'
+        onClick={(e) => exceptPlan(e, selectUserId)}
+      />
+      <ConfirmDialog
+        isOpen={acceptConfirmDialogIsOpen}
+        setIsOpen={setAcceptConfirmDialogIsOpen}
+        primaryText='本当にこのユーザーがプランに参加するのを許可しますか？'
+        secondaryText='除外したユーザーが自分の意志でプランに参加できるようになります。'
+        onClick={(e) => acceptPlan(e, selectUserId)}
+      />
+      <ConfirmDialog
+        isOpen={deleteConfirmDialogIsOpen}
+        setIsOpen={setDeleteConfirmDialogIsOpen}
+        primaryText='本当にこのプランを削除しますか？'
+        secondaryText='このプランを削除すると、チャット履歴も削除されます。'
+        onClick={(e) => deletePlan(e)}
+      />
     </SPlanBox>
   );
 };
 
 const SPlanBox = styled.div`
+  opacity: ${(props) => (props.isLoading ? 0 : 1)};
+  transform: ${(props) => (props.isLoading ? 'translateY(30px)' : 'none')};
   font-family: 'Noto Sans JP', sans-serif;
   font-family: 'Noto Serif JP', serif;
   font-family: 'Poppins', sans-serif;
-  margin-top: 10rem;
+  margin-top: 2rem;
   width: 90%;
   position: relative;
   max-width: 300px;
   min-height: 340px;
   height: ${(props) =>
-    props.readMore ? props.planBackHeight + 'px' : '340px'};
+    !props.isFront && props.readMore
+      ? `calc(152px + ${props.contentsHeight}px)`
+      : '340px'};
+  transition: height 0.3s ease-in-out, opacity 0.5s, transform 0.5s;
   overflow: hidden;
+
   > div {
     width: calc(100% - 9px);
     height: calc(100% - 8px);
+    min-height: calc(100% - 8px);
     background-color: #fff;
     box-shadow: 9px 8px 14px -10px #777777;
     border-radius: 10px;
@@ -229,7 +710,7 @@ const SPlanBox = styled.div`
       z-index: 2;
       transform: ${(props) => (props.isFront ? 'translateY(-110%)' : 'none')};
       pointer-events: ${(props) => (props.isFront ? 'none' : 'auto')};
-      height: ${(props) => (props.readMore ? 'auto' : '100%')};
+      height: ${(props) => props.readMore && 'auto'};
     }
   }
 `;
@@ -237,13 +718,6 @@ const SPlanBox = styled.div`
 const SwiperBox = styled(Swiper)`
   width: 100%;
   height: 100%;
-`;
-
-const SwiperItem = styled(SwiperSlide)`
-  img {
-    width: 100%;
-    height: 100%;
-  }
 `;
 
 const SFront = styled.div`
@@ -256,31 +730,46 @@ const SFrontHeader = styled.div`
   padding: 0.3rem 0.4rem;
   height: 13%;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  column-gap: 1.2rem;
-  > a div {
-    width: 2.4rem;
-    height: 2.4rem;
-    img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-  }
-
   > div {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    h3 {
-      font-size: 0.8rem;
-      font-weight: 700;
+    height: 100%;
+    &:nth-of-type(1) {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      column-gap: 1.2rem;
+      > a div {
+        width: 2.4rem;
+        height: 2.4rem;
+        img {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+      }
+
+      > div {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        width: 75%;
+        overflow-x: hidden;
+        h3 {
+          font-size: 0.8rem;
+          font-weight: 700;
+          white-space: nowrap;
+        }
+        p {
+          cursor: pointer;
+          font-size: 0.6rem;
+          color: #8f8e8e;
+        }
+      }
     }
-    p {
-      font-size: 0.6rem;
-      color: #8f8e8e;
+    &:nth-of-type(2) {
     }
   }
 `;
@@ -295,6 +784,7 @@ const SFrontMedia = styled.div`
 
 const SFrontFooter = styled.div`
   height: 13%;
+  width: 100%;
   padding: 0 0.5rem;
   display: flex;
   align-items: center;
@@ -305,10 +795,22 @@ const SFrontFooter = styled.div`
       flex-direction: column;
       justify-content: center;
       align-items: flex-start;
+      width: 70%;
       p {
+        width: 100%;
         font-size: 0.8rem;
+        display: flex;
+        column-gap: 0.4rem;
+        align-items: center;
         span {
-          font-weight: 600;
+          &:nth-of-type(1) {
+            font-weight: 600;
+          }
+          &:nth-of-type(2) {
+            overflow-x: hidden;
+            white-space: nowrap;
+            width: 65%;
+          }
         }
       }
     }
@@ -327,12 +829,13 @@ const SBack = styled.div`
   cursor: pointer;
 `;
 
-const SBackContents = styled.div`
-  padding: 1rem;
+const SBackWrapper = styled.div`
+  width: 100%;
+  padding: 1.2rem 1rem 0.5rem 1rem;
   background-color: rgba(255, 255, 255, 0.8);
   display: flex;
   flex-direction: column;
-  row-gap: 1.5rem;
+  row-gap: 1.4rem;
   transform-style: preserve-3d;
   transition: transform 0.4s, opacity 0.4s;
   transition-delay: 0.4s;
@@ -341,15 +844,10 @@ const SBackContents = styled.div`
   opacity: ${(props) => (props.isFront ? 0 : 1)};
 
   > div {
-    &:nth-of-type(2) {
-      column-gap: 0.5rem;
-      display: flex;
-      flex-wrap: wrap;
-      row-gap: 0.4rem;
-      display: ${(props) => props.chipTexts.length === 0 && 'none'};
+    &:nth-of-type(1) {
     }
 
-    &:nth-of-type(3) {
+    &:nth-of-type(2) {
       display: flex;
       align-items: center;
       column-gap: 1rem;
@@ -359,29 +857,58 @@ const SBackContents = styled.div`
 
   > h3 {
     text-align: center;
-  }
-  > h2 {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
+    font-weight: 550;
+    color: ${(props) =>
+      props.limit > 0 && props.limit <= props.participants.length
+        ? 'red'
+        : 'black'};
   }
 `;
 
-const SPlanDesc = styled.div`
+const SBackContents = styled.div`
   width: 100%;
-
-  > p {
-    font-size: 0.8rem;
-    color: #373636;
-    display: ${(props) => (props.desc === '' ? 'none' : 'block')};
-    height: ${(props) => (props.readMore ? 'auto' : '2.8rem')};
-    overflow: hidden;
-  }
+  min-height: 11rem;
+  overflow: hidden;
+  height: ${(props) =>
+    props.readMore ? `${props.contentsHeight}px` : '11rem'};
+  transition: height 0.3s ease-in-out;
+  position: relative;
 
   > div {
-    display: ${(props) => (props.descHeight > 48 ? 'block' : 'none')};
-    cursor: pointer;
-    text-align: right;
-    font-size: 0.7rem;
-    color: gray;
+    display: flex;
+    flex-direction: column;
+    row-gap: 1rem;
+    &:nth-of-type(1) {
+      opacity: ${(props) =>
+        props.contentsHeight > 176 && !props.readMore ? '.6' : '1'};
+      > h2 {
+        font-size: 1.3rem;
+        word-break: break-all;
+      }
+
+      > p {
+        font-size: 0.8rem;
+        word-break: break-all;
+        color: #373636;
+        display: ${(props) => (props.desc === '' ? 'none' : 'block')};
+      }
+      > div {
+        column-gap: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        row-gap: 0.4rem;
+        display: ${(props) => props.chipTexts.length === 0 && 'none'};
+      }
+    }
+    &:nth-of-type(2) {
+      position: absolute;
+      right: 0;
+      bottom: -15px;
+      display: ${(props) => (props.contentsHeight > 176 ? 'block' : 'none')};
+      transform: ${(props) => (props.readMore ? 'rotate(180deg)' : 'none')};
+      transition: transform 0.3s;
+    }
   }
 `;
 

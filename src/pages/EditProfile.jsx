@@ -8,7 +8,6 @@ import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import SelectImage from '../components/SelectImage';
 import { useEffect } from 'react';
-import axios from 'axios';
 import { memo } from 'react';
 import styled from 'styled-components';
 import { useUserData } from '../provider/UserDataProvider';
@@ -20,6 +19,9 @@ import { useSnackbarShowFlg } from '../provider/SnackbarShowFlgProvider';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/main';
 import SelectPrefecture from '../components/SelectPrefecture';
+import useUserFunc from '../hooks/useUserFunc';
+import useFetchData from '../hooks/useFetchData';
+
 const EditProfile = memo(() => {
   const router = useRouter();
   const { userData, setUserData } = useUserData();
@@ -28,21 +30,22 @@ const EditProfile = memo(() => {
   const nowDate = new Date();
   const [birthday, setBirthday] = useState(userData.birthday || nowDate);
   const [prefecture, setPrefecture] = useState(userData.prefecture);
-  const [iconImage, setIconImage] = useState(userData.iconImage);
-  const [homeImage, setHomeImage] = useState(userData.homeImage);
+  const [iconImage, setIconImage] = useState(userData.icon_image);
+  const [homeImage, setHomeImage] = useState(userData.home_image);
+  const [isFirst, setIsFirst] = useState(false);
   const { uploadImage } = useUploadImage();
   const { setSnackbarInfo } = useSnackbarInfo();
   const { setSnackbarIsShow } = useSnackbarShowFlg();
-
   const [user] = useAuthState(auth);
-  let first;
+  const { updateUserFunc } = useUserFunc();
+  const { fetchUserByIdFunc } = useFetchData();
   useEffect(() => {
     if (!user) {
       router.push('/auth');
     }
   }, [user]);
   useEffect(() => {
-    first = router.query.first;
+    setIsFirst(Boolean(router.query.first));
   }, []);
   const changeBirthday = (selectDate) => {
     setBirthday(selectDate);
@@ -57,7 +60,7 @@ const EditProfile = memo(() => {
   };
   const updateProfile = async (e) => {
     e.preventDefault();
-    if (username === '' || prefecture === undefined) {
+    if (username === '' || !prefecture) {
       setSnackbarInfo({
         text: 'ユーザーネーム、都道府県の入力は必須です。',
         severity: 'error',
@@ -65,50 +68,47 @@ const EditProfile = memo(() => {
       setSnackbarIsShow(true);
       return;
     }
-    const convertDesc = desc.replace(/\n/g, '<br>');
+    let convertDesc = '';
+    if (!!desc) {
+      convertDesc = desc.replace(/\n/g, '<br>');
+    }
     const option = {
-      userId: userData._id,
+      user_id: userData._id,
       username,
       desc: convertDesc,
       birthday,
       prefecture,
+      icon_image: iconImage,
+      home_image: homeImage,
     };
 
-    if (!!iconImage && iconImage !== userData.iconImage) {
+    if (!!iconImage && iconImage !== userData.icon_image) {
       const imageURL = await uploadImage(iconImage, 'user');
-      await axios.put('http://localhost:5000/api/plan/updateIconImage', {
-        userId: userData._id,
-        iconImage: imageURL,
-      });
-      await axios.put('http://localhost:5000/api/talk/updateIconImage', {
-        userId: userData._id,
-        iconImage: imageURL,
-      });
-      option.iconImage = imageURL;
+      option.icon_image = imageURL;
     }
-    if (!!homeImage && homeImage !== userData.homeImage) {
+    if (!!homeImage && homeImage !== userData.home_image) {
       const imageURL = await uploadImage(homeImage, 'user');
-      option.homeImage = imageURL;
+      option.home_image = imageURL;
     }
-    await axios.put(`http://localhost:5000/api/user/${userData._id}`, option);
+    await updateUserFunc(option);
 
-    const response = await axios.get(
-      `http://localhost:5000/api/user/${userData._id}`
-    );
-    setUserData(response.data);
+    const response = await fetchUserByIdFunc(userData._id);
+    setUserData(response);
     router.push('/Home');
   };
   return (
     <SEditProfile>
       <h2>プロフィール情報を編集</h2>
       <TextField
+        variant='standard'
         id='username'
         label='ユーザーネームを入力'
         value={username}
+        autoFocus
         onChange={(e) => handleChange(e, setUsername)}
       />
-
       <TextField
+        variant='standard'
         id='desc'
         label='紹介文を入力'
         fullWidth
@@ -123,28 +123,36 @@ const EditProfile = memo(() => {
           inputFormat='yyyy/MM/dd'
           onChange={changeBirthday}
           value={birthday}
-          renderInput={(params) => <TextField {...params} fullWidth />}
+          renderInput={(params) => (
+            <TextField variant='standard' {...params} fullWidth />
+          )}
         />
       </LocalizationProvider>
       <SelectPrefecture prefecture={prefecture} setPrefecture={setPrefecture} />
-      <SelectImage
-        id='iconImage'
-        fullWidth
-        multiple={false}
-        accept='.png, .jpeg, .jpg'
-        text='アイコン画像を選択'
-        icon={<InsertPhotoIcon />}
-        setImage={setIconImage}
-      />
-      <SelectImage
-        id='homeImage'
-        fullWidth
-        multiple={false}
-        accept='.png, .jpeg, .jpg'
-        text='ホーム画像を選択'
-        icon={<InsertPhotoIcon />}
-        setImage={setHomeImage}
-      />
+      <SSelectImageWrap>
+        <SelectImage
+          id='iconImage'
+          fullWidth
+          multiple={false}
+          accept='.png, .jpeg, .jpg'
+          text='アイコン画像を選択'
+          icon={<InsertPhotoIcon />}
+          setImage={setIconImage}
+        />
+        {!iconImage && <p>アイコン画像が選択されていません</p>}
+      </SSelectImageWrap>
+      <SSelectImageWrap>
+        <SelectImage
+          id='homeImage'
+          fullWidth
+          multiple={false}
+          accept='.png, .jpeg, .jpg'
+          text='ホーム画像を選択'
+          icon={<InsertPhotoIcon />}
+          setImage={setHomeImage}
+        />
+        {!homeImage && <p>ホーム画像が選択されていません。</p>}
+      </SSelectImageWrap>
       <Button
         fullWidth
         color='success'
@@ -153,7 +161,7 @@ const EditProfile = memo(() => {
       >
         プロフィール情報更新
       </Button>
-      {first && (
+      {isFirst && (
         <CommonButton
           color='secondary'
           variant='contained'
@@ -177,6 +185,17 @@ const SEditProfile = styled.form`
   flex-direction: column;
   row-gap: 1.6rem;
   margin: 0 auto;
+`;
+
+const SSelectImageWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.2rem;
+
+  > p {
+    color: red;
+    font-size: 0.8rem;
+  }
 `;
 
 export default EditProfile;

@@ -1,3 +1,19 @@
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import MoodIcon from '@mui/icons-material/Mood';
+import MoodBadIcon from '@mui/icons-material/MoodBad';
+import SickIcon from '@mui/icons-material/Sick';
+import SentimentNeutralIcon from '@mui/icons-material/SentimentNeutral';
+import {
+  green,
+  pink,
+  lightBlue,
+  purple,
+  amber,
+  red,
+} from '@mui/material/colors';
+
 export const prefectureArray = [
   '北海道',
   '青森県',
@@ -51,3 +67,61 @@ export const prefectureArray = [
 export const uploadLimitFileSize = 1024 * 1024 * 1.4;
 
 export const definedLimit = 40;
+export const SERVER_URL = 'https://photo-connect-api.onrender.com';
+export const BASE_API_URL = 'https://photo-connect-api.onrender.com/api';
+
+export const REACTIONS = [
+  { label: 'favorite', node: <FavoriteIcon fontSize='large' color='error' /> },
+  { label: 'good', node: <ThumbUpIcon fontSize='large' color='primary' /> },
+  { label: 'bad', node: <ThumbDownIcon fontSize='large' color='primary' /> },
+  { label: 'smile', node: <MoodIcon fontSize='large' color='secondary' /> },
+  { label: 'angry', node: <MoodBadIcon fontSize='large' color='secondary' /> },
+  {
+    label: 'nature',
+    node: <SentimentNeutralIcon fontSize='large' color='secondary' />,
+  },
+  { label: 'sick', node: <SickIcon fontSize='large' color='secondary' /> },
+];
+
+export const REACTION_ICONS = {
+  like: '👍',
+  laugh: '😂',
+  wow: '😮',
+  sad: '😔',
+  angry: '😠',
+};
+
+export const REACTION_AVATAR_ICONS = {
+  favorite: <FavoriteIcon />,
+  good: <ThumbUpIcon />,
+  bad: <ThumbDownIcon />,
+  smile: <MoodIcon />,
+  angry: <MoodBadIcon />,
+  nature: <SentimentNeutralIcon />,
+  sick: <SickIcon />,
+};
+export const SMALL_REACTION_AVATAR_ICONS = {
+  favorite: <FavoriteIcon fontSize='small' />,
+  good: <ThumbUpIcon fontSize='small' />,
+  bad: <ThumbDownIcon fontSize='small' />,
+  smile: <MoodIcon fontSize='small' />,
+  angry: <MoodBadIcon fontSize='small' />,
+  nature: <SentimentNeutralIcon fontSize='small' />,
+  sick: <SickIcon fontSize='small' />,
+};
+export const AVATAR_COLOR = {
+  favorite: pink[500],
+  good: lightBlue[500],
+  bad: lightBlue[500],
+  smile: amber[500],
+  angry: red[500],
+  nature: green[500],
+  sick: purple[500],
+};
+export const NO_IMAGE_PATH = '/images/noImage.jpg';
+export const CLOSED_PLAN_IMAGE_PATH = '/images/planClose.png';
+
+export const MAX_LOAD_PLAN_COUNT = 8;
+export const MAX_LOAD_TALK_COUNT = 15;
+export const MAX_DISP_REACTION_AVATAR_COUNT = 3;
+export const LOADING_TIME = 100;
