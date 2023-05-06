@@ -6,7 +6,7 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import SelectPrefecture from '../components/SelectPrefecture';
 import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button/Button';
+import Button from '@mui/material/Button';
 import CommonList from '../components/CommonList';
 import PlanList from '../components/PlanList';
 import styled from 'styled-components';

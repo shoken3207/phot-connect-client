@@ -118,10 +118,26 @@ export const AVATAR_COLOR = {
   nature: green[500],
   sick: purple[500],
 };
+
+export const NOTIFICATION_TYPE = {
+  ADD_FRIEND: 1,
+  LEAVE_FRIEND: 2,
+  PARTICIPATION_PLAN: 3,
+  LEAVE_PLAN: 4,
+  EXCEPT_PLAN: 5,
+  REMOVE_PLAN: 6,
+  LIKE_PLAN: 7,
+  RECEIVE_TALK: 8,
+  REACTION_TALK: 9,
+  ACCEPT_PLAN: 10,
+};
+
 export const NO_IMAGE_PATH = '/images/noImage.jpg';
 export const CLOSED_PLAN_IMAGE_PATH = '/images/planClose.png';
+export const NO_AVATAR_IMAGE_PATH = '/images/noAvatar.png';
 
 export const MAX_LOAD_PLAN_COUNT = 8;
 export const MAX_LOAD_TALK_COUNT = 15;
 export const MAX_DISP_REACTION_AVATAR_COUNT = 3;
+export const MAX_LOAD_NOTIFICATION_COUNT = 20;
 export const LOADING_TIME = 100;

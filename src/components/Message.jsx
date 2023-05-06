@@ -73,7 +73,7 @@ const Message = memo(
           });
         }
         if (userData._id !== senderId && !isReactioned(userData._id)) {
-          menuArray.push({
+          menuArray.unshift({
             text: 'トークにリアクションする',
             icon: <AddReactionIcon />,
             onClickFunc: (e) => setReactionBarIsOpen(true),

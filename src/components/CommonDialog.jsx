@@ -4,7 +4,16 @@ import React from 'react';
 
 const CommonDialog = ({ dialogTitle, isOpen, setIsOpen, children }) => {
   return (
-    <Dialog onClose={() => setIsOpen(false)} open={isOpen}>
+    <Dialog
+      PaperProps={{
+        style: {
+          minWidth: 340,
+        },
+      }}
+      maxWidth='sm'
+      onClose={() => setIsOpen(false)}
+      open={isOpen}
+    >
       <DialogTitle>{dialogTitle}</DialogTitle>
       {children}
     </Dialog>

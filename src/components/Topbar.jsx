@@ -22,15 +22,23 @@ import CommonDialog from './CommonDialog';
 import PlanList from './PlanList';
 import useFetchData from '../hooks/useFetchData';
 import { MAX_LOAD_PLAN_COUNT } from '../const';
+import { useIsOpenFullScreenDialog } from '../provider/IsOpenFullScreenDialogProvider';
 const TopBar = memo(({ setIsOpen }) => {
   const router = useRouter();
   const { userData, setUserData } = useUserData();
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const [plans, setPlans] = useState([]);
+  const [notificationCount, setNotificationCount] = useState(0);
   const [planCountVal, setPlanCountVal] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(1);
   const [menuList, setMenuList] = useState([]);
-  const { fetchLikedPlansFunc, fetchParticipatedPlansFunc } = useFetchData();
+  const { isOpenFullScreenDialog, setIsOpenFullScreenDialog } =
+    useIsOpenFullScreenDialog();
+  const {
+    fetchLikedPlansFunc,
+    fetchParticipatedPlansFunc,
+    fetchNotificationCountFunc,
+  } = useFetchData();
   const basePath = router.pathname.split('/')[1];
 
   useEffect(() => {
@@ -61,6 +69,12 @@ const TopBar = memo(({ setIsOpen }) => {
   }, [userData]);
 
   useEffect(() => {
+    if (basePath === 'Home') {
+      fetchNotificationCount();
+    }
+  }, [router.pathname, isOpenFullScreenDialog]);
+
+  useEffect(() => {
     if (!dialogIsOpen) {
       setCurrentPageIndex(1);
     }
@@ -69,6 +83,15 @@ const TopBar = memo(({ setIsOpen }) => {
   const transitionProfilePage = (e) => {
     e.preventDefault();
     router.push(`/Profile/${userData._id}`);
+  };
+
+  const fetchNotificationCount = async () => {
+    if (userData._id) {
+      const { notificationCount } = await fetchNotificationCountFunc(
+        userData._id
+      );
+      setNotificationCount(notificationCount);
+    }
   };
 
   const dispLikedPlan = async (e) => {
@@ -118,7 +141,9 @@ const TopBar = memo(({ setIsOpen }) => {
       <Toolbar>
         <>
           {!!userData._id &&
-          (basePath === 'TalkRoom' || basePath === 'Profile') ? (
+          (basePath === 'TalkRoom' ||
+            basePath === 'Profile' ||
+            (isOpenFullScreenDialog && basePath === 'Chat')) ? (
             <IconButton
               size='large'
               edge='start'
@@ -149,13 +174,19 @@ const TopBar = memo(({ setIsOpen }) => {
               <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
                 {userData.username || 'unknown'}
               </Typography>
-              <Tooltip title='通知'>
-                <IconButton>
-                  <Badge badgeContent={17} color='secondary'>
-                    <NotificationsIcon fontSize='large' />
-                  </Badge>
-                </IconButton>
-              </Tooltip>
+              {basePath === 'Home' && (
+                <Tooltip title='通知'>
+                  <IconButton onClick={() => setIsOpenFullScreenDialog(true)}>
+                    {notificationCount > 0 ? (
+                      <Badge badgeContent={notificationCount} color='secondary'>
+                        <NotificationsIcon fontSize='large' />
+                      </Badge>
+                    ) : (
+                      <NotificationsIcon fontSize='large' />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              )}
               <CommonMenu menuArray={menuList}>
                 <Avatar src={userData.icon_image} />
               </CommonMenu>
