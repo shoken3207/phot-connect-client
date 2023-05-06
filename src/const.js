@@ -67,9 +67,8 @@ export const prefectureArray = [
 export const uploadLimitFileSize = 1024 * 1024 * 1.4;
 
 export const definedLimit = 40;
-
-export const SERVER_URL = 'http://localhost:5000';
-export const BASE_API_URL = 'http://localhost:5000/api';
+export const SERVER_URL = 'https://photo-connect-api.onrender.com';
+export const BASE_API_URL = 'https://photo-connect-api.onrender.com/api';
 
 export const REACTIONS = [
   { label: 'favorite', node: <FavoriteIcon fontSize='large' color='error' /> },
