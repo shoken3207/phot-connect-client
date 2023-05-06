@@ -2,10 +2,15 @@ import React, { useEffect, useState } from 'react';
 import PlanList from '../components/PlanList';
 import { useUserData } from '../provider/UserDataProvider';
 import useFetchData from '../hooks/useFetchData';
-import { MAX_LOAD_PLAN_COUNT } from '../const';
+import { MAX_LOAD_NOTIFICATION_COUNT, MAX_LOAD_PLAN_COUNT } from '../const';
 import { useRouter } from 'next/router';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/main';
+import { useIsOpenFullScreenDialog } from '../provider/IsOpenFullScreenDialogProvider';
+import CommonFullScreenDialog from '../components/CommonFullScreenDialog';
+import NotificationList from '../components/NotificationList';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 const Home = () => {
   const router = useRouter();
@@ -13,8 +18,16 @@ const Home = () => {
   const { userData } = useUserData();
   const [planCountVal, setPlanCountVal] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(1);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationCount, setNotificationCount] = useState(0);
   const [plans, setPlans] = useState([]);
-  const { fetchHomePlansFunc } = useFetchData();
+  const { isOpenFullScreenDialog, setIsOpenFullScreenDialog } =
+    useIsOpenFullScreenDialog();
+  const {
+    fetchHomePlansFunc,
+    fetchNotificationsFunc,
+    fetchNotificationCountFunc,
+  } = useFetchData();
   const fetchFunc = async () => {
     const { plans, planCount } = await fetchHomePlansFunc(
       userData._id,
@@ -35,6 +48,30 @@ const Home = () => {
     }
   }, [userData, currentPageIndex]);
 
+  useEffect(() => {
+    if (isOpenFullScreenDialog) {
+      fetchNotifications();
+      fetchNotificationCount();
+    } else {
+      setNotifications([]);
+    }
+  }, [isOpenFullScreenDialog]);
+
+  const fetchNotifications = async () => {
+    const { notifications: loadNotifications } = await fetchNotificationsFunc(
+      userData._id,
+      notifications.length,
+      MAX_LOAD_NOTIFICATION_COUNT
+    );
+    setNotifications([...notifications, ...loadNotifications]);
+  };
+  const fetchNotificationCount = async () => {
+    const { notificationCount } = await fetchNotificationCountFunc(
+      userData._id
+    );
+    setNotificationCount(notificationCount);
+  };
+
   return (
     <div>
       <PlanList
@@ -44,6 +81,21 @@ const Home = () => {
         currentPageIndex={currentPageIndex}
         setCurrentPageIndex={setCurrentPageIndex}
       />
+      <CommonFullScreenDialog
+        isOpenFullScreenDialog={isOpenFullScreenDialog}
+        setIsOpenFullScreenDialog={setIsOpenFullScreenDialog}
+        title='通知'
+        icon={<NotificationsIcon />}
+      >
+        <InfiniteScroll
+          height='88vh'
+          dataLength={notifications.length}
+          next={fetchNotifications}
+          hasMore={notificationCount !== notifications.length}
+        >
+          <NotificationList notifications={notifications} />
+        </InfiniteScroll>
+      </CommonFullScreenDialog>
     </div>
   );
 };

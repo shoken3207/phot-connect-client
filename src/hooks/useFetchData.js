@@ -177,6 +177,7 @@ const useFetchData = () => {
 
   const fetchPlanFunc = useCallback(async (planId) => {
     try {
+      setIsLoading(true);
       const response = await axios.get(`${BASE_API_URL}/plan/${planId}/id`);
       if (response.data.message !== '') {
         setSnackbarInfo({ text: response.data.message, severity: 'success' });
@@ -187,6 +188,10 @@ const useFetchData = () => {
       const { response } = err;
       setSnackbarInfo({ text: response.data.message, severity: 'warning' });
       setSnackbarIsShow(true);
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, LOADING_TIME);
     }
   }, []);
 
@@ -356,6 +361,47 @@ const useFetchData = () => {
     }
   }, []);
 
+  const fetchNotificationsFunc = useCallback(async (userId, start, limit) => {
+    try {
+      if (start === 0) {
+        setIsLoading(true);
+      }
+      const response = await axios.get(
+        `${BASE_API_URL}/notification/${userId}/${start}/${limit}`
+      );
+      if (response.data.message !== '') {
+        setSnackbarInfo({ text: response.data.message, severity: 'success' });
+        setSnackbarIsShow(true);
+      }
+
+      return {
+        notifications: response.data.notifications,
+      };
+    } catch (err) {
+      const { response } = err;
+      if (start === 0) {
+        setSnackbarInfo({ text: response.data.message, severity: 'warning' });
+        setSnackbarIsShow(true);
+      }
+      return { notifications: response.data.notifications };
+    } finally {
+      if (start === 0) {
+        setTimeout(() => {
+          setIsLoading(false);
+        }, LOADING_TIME);
+      }
+    }
+  }, []);
+
+  const fetchNotificationCountFunc = useCallback(async (userId) => {
+    const response = await axios.get(
+      `${BASE_API_URL}/notification/count/${userId}`
+    );
+    return {
+      notificationCount: response.data.notificationCount,
+    };
+  }, []);
+
   return {
     fetchUserByIdFunc,
     fetchUserByEmailFunc,
@@ -373,6 +419,8 @@ const useFetchData = () => {
     fetchParticipatedPlansFunc,
     fetchCreatedPlansFunc,
     fetchHomePlansFunc,
+    fetchNotificationsFunc,
+    fetchNotificationCountFunc,
   };
 };
 

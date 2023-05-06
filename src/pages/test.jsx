@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import { AVATAR_COLOR, REACTION_AVATAR_ICONS, prefectureArray } from '../const';
-
+import InfiniteScroll from 'react-infinite-scroller';
 import PersonList from '../components/CommonList';
 import CommonDialog from '../components/CommonDialog';
 import { Button } from '@mui/material';
@@ -16,6 +16,8 @@ import 'swiper/swiper-bundle.min.css';
 import 'swiper/swiper.min.css';
 import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
+import CommonFullScreenDialog from '../components/CommonFullScreenDialog';
+import NotificationList from '../components/NotificationList';
 const test = () => {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
@@ -230,6 +232,56 @@ const test = () => {
       iconImage: '/images/noAvatar.png',
     },
   ];
+  const notifications = [
+    {
+      actor_id: '644e1fab9b84238befc5bd6c',
+      actor_name: 'tanaka',
+      actor_image:
+        'https://firebasestorage.googleapis.com/v0/b/photo-connect-aae70.appspot.com/o/images%2Fuser%2F16833479656432021_0322_19525800.jpg?alt=media&token=2d29bbde-add5-4af5-bf15-4ec74e2ffbf8',
+      content_id: '644e23501aef45c87f328da6',
+      content_image:
+        'https://firebasestorage.googleapis.com/v0/b/photo-connect-aae70.appspot.com/o/images%2Fplan%2F16828424467772021_0329_22385800.jpg?alt=media&token=78af19e9-7b30-4e22-abfd-d4b62dec669c',
+      action_type: 1,
+    },
+    {
+      actor_id: '644e1fab9b84238befc5bd6c',
+      actor_name: 'tanaka',
+      actor_image:
+        'https://firebasestorage.googleapis.com/v0/b/photo-connect-aae70.appspot.com/o/images%2Fuser%2F16833479656432021_0322_19525800.jpg?alt=media&token=2d29bbde-add5-4af5-bf15-4ec74e2ffbf8',
+      content_id: '644e23501aef45c87f328da6',
+      content_image:
+        'https://firebasestorage.googleapis.com/v0/b/photo-connect-aae70.appspot.com/o/images%2Fplan%2F16828424467772021_0329_22385800.jpg?alt=media&token=78af19e9-7b30-4e22-abfd-d4b62dec669c',
+      action_type: 3,
+    },
+    {
+      actor_id: '644e1fab9b84238befc5bd6c',
+      actor_name: 'tanaka',
+      actor_image:
+        'https://firebasestorage.googleapis.com/v0/b/photo-connect-aae70.appspot.com/o/images%2Fuser%2F16833479656432021_0322_19525800.jpg?alt=media&token=2d29bbde-add5-4af5-bf15-4ec74e2ffbf8',
+      content_id: '644e23501aef45c87f328da6',
+      content_image:
+        'https://firebasestorage.googleapis.com/v0/b/photo-connect-aae70.appspot.com/o/images%2Fplan%2F16828424467772021_0329_22385800.jpg?alt=media&token=78af19e9-7b30-4e22-abfd-d4b62dec669c',
+      action_type: 4,
+    },
+    {
+      actor_id: '644e1fab9b84238befc5bd6c',
+      actor_name: 'tanaka',
+      actor_image:
+        'https://firebasestorage.googleapis.com/v0/b/photo-connect-aae70.appspot.com/o/images%2Fuser%2F16833479656432021_0322_19525800.jpg?alt=media&token=2d29bbde-add5-4af5-bf15-4ec74e2ffbf8',
+      content_id: '644e21e89b84238befc5be0d',
+      content_image: '',
+      action_type: 8,
+    },
+    {
+      actor_id: '644e1fab9b84238befc5bd6c',
+      actor_name: 'tanaka',
+      actor_image:
+        'https://firebasestorage.googleapis.com/v0/b/photo-connect-aae70.appspot.com/o/images%2Fuser%2F16833479656432021_0322_19525800.jpg?alt=media&token=2d29bbde-add5-4af5-bf15-4ec74e2ffbf8',
+      content_id: '644e21e89b84238befc5be0d',
+      content_image: '',
+      action_type: 1,
+    },
+  ];
   const [value, setValue] = React.useState(prefectureArray[0]);
   useEffect(() => {
     setHeight(element.current.scrollHeight);
@@ -305,6 +357,36 @@ const test = () => {
     'sick',
     'sick',
   ];
+
+  //表示するデータ
+  const [list, setList] = useState([]);
+
+  //項目を読み込むときのコールバック
+  const loadMore = (page) => {
+    setList([...list, page]);
+  };
+
+  //各スクロール要素
+  const items = (
+    <ul>
+      {list.map((value) => (
+        <li>{value}</li>
+      ))}
+    </ul>
+  );
+
+  //全体のスタイル
+  const root_style = {
+    marginLeft: '50px',
+    marginTop: '50px',
+  };
+
+  //ロード中に表示する項目
+  const loader = (
+    <div className='loader' key={0}>
+      Loading ...
+    </div>
+  );
   return (
     <div>
       <input
@@ -402,6 +484,20 @@ const test = () => {
           </Avatar>
         ))}
       </AvatarGroup>
+      {/* <CommonFullScreenDialog>
+        <NotificationList notifications={notifications} />
+      </CommonFullScreenDialog> */}
+      <div style={root_style}>
+        <InfiniteScroll
+          loadMore={loadMore} //項目を読み込む際に処理するコールバック関数
+          hasMore={true} //読み込みを行うかどうかの判定
+          loader={loader}
+        >
+          {' '}
+          {/* 読み込み最中に表示する項目 */}
+          {items} {/* 無限スクロールで表示する項目 */}
+        </InfiniteScroll>
+      </div>
     </div>
   );
 };

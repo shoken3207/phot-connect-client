@@ -535,9 +535,8 @@ const PlanBox = ({
               <p dangerouslySetInnerHTML={{ __html: desc }}></p>
               <div>
                 {chipTexts.map((chipText) => (
-                  <Tooltip title='タグで検索'>
+                  <Tooltip key={chipText} title='タグで検索'>
                     <Chip
-                      key={chipText}
                       label={chipText}
                       onClick={(e) => tagClick(e, chipText)}
                     />

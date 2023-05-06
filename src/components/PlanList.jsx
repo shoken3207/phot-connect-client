@@ -18,7 +18,7 @@ const PlanList = memo(
   ({
     planList,
     setPlans,
-    planCountVal,
+    planCountVal = 1,
     currentPageIndex,
     setCurrentPageIndex,
   }) => {
