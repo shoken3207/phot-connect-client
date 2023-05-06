@@ -7,7 +7,6 @@ import InfiniteScroll from 'react-infinite-scroller';
 import PersonList from '../components/CommonList';
 import CommonDialog from '../components/CommonDialog';
 import { Button } from '@mui/material';
-import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { Pagination, Navigation } from 'swiper';
@@ -16,8 +15,6 @@ import 'swiper/swiper-bundle.min.css';
 import 'swiper/swiper.min.css';
 import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
-import CommonFullScreenDialog from '../components/CommonFullScreenDialog';
-import NotificationList from '../components/NotificationList';
 const test = () => {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');

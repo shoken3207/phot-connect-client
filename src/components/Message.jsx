@@ -92,6 +92,7 @@ const Message = memo(
                 sx={{
                   width: 38,
                   height: 38,
+                  marginLeft: 3,
                   bgcolor: AVATAR_COLOR[x.reaction_type],
                 }}
               >
@@ -129,9 +130,11 @@ const Message = memo(
 
       const removeTalkReaction = async (e, reactorId) => {
         e.preventDefault();
+
         const { success } = await removeTalkReactionFunc({
           talk_id: talkId,
           reactor_id: reactorId,
+          user_id: userData._id,
         });
         if (success) {
           const copyTalks = [...talks];
@@ -227,7 +230,7 @@ const Message = memo(
               pagePath='/Profile'
               onClick={(e, reactorId) => removeTalkReaction(e, reactorId)}
               withActionButton
-              reactorAction
+              removeReaction
             />
           </CommonDialog>
           <ConfirmDialog

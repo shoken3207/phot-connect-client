@@ -105,6 +105,14 @@ const useChatFunc = () => {
 
   const removeTalkReactionFunc = useCallback(async (option) => {
     try {
+      if (option.user_id !== option.reactor_id) {
+        setSnackbarInfo({
+          text: 'あなたがリアクションしたものだけ、削除できます。',
+          severity: 'error',
+        });
+        setSnackbarIsShow(true);
+        return { success: false };
+      }
       const response = await axios.post(
         `${BASE_API_URL}/chat/removeMessageReaction`,
         option
