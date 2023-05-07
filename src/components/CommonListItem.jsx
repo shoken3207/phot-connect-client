@@ -33,6 +33,7 @@ const PersonListItem = memo(
     isGroupTalkRoom,
     talkRoomMembers,
     chat,
+    actionButton,
   }) => {
     const { readTalksFunc } = useChatFunc();
     const { userData } = useUserData();
@@ -104,7 +105,13 @@ const PersonListItem = memo(
     };
     return (
       <div className='person-list-item'>
-        <ListItem secondaryAction={chat && <CommonMenu menuArray={menuList} />}>
+        <ListItem
+          secondaryAction={
+            !!actionButton
+              ? actionButton
+              : chat && <CommonMenu menuArray={menuList} />
+          }
+        >
           <ListItemButton onClick={(e) => transitionTalkRoom(e)}>
             <ListItemAvatar>
               <Avatar

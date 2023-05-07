@@ -625,7 +625,7 @@ const PlanBox = ({
           participants={participants}
           onClick={(e, participantId) => selectExceptUser(e, participantId)}
           withActionButton
-          participantsAction
+          except
         />
       </CommonDialog>
       <CommonDialog
@@ -639,7 +639,7 @@ const PlanBox = ({
           participants={participants}
           onClick={(e, blackUserId) => selectAcceptUser(e, blackUserId)}
           withActionButton
-          participantsAction
+          accept
         />
       </CommonDialog>
       <ConfirmDialog
