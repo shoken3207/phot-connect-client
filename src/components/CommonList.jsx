@@ -96,7 +96,8 @@ const PersonList = memo(
                       selectUsers && (
                         <Checkbox
                           disabled={
-                            isParticipant(itemData.id) || isInvitee(itemData.id)
+                            (participants && isParticipant(itemData.id)) ||
+                            (invitees && isInvitee(itemData.id))
                           }
                           checked={selectUsers.includes(itemData.id)}
                           onChange={(e) => onChange(itemData.id)}

@@ -68,6 +68,8 @@ const PlanBox = ({
   const [likersListIsOpen, setLikersListIsOpen] = useState(false);
   const [participantsListIsOpen, setParticipantsIsOpen] = useState(false);
   const [selectFriendsListIsOpen, setSelectFriendsListIsOpen] = useState(false);
+  const [selectInviteesListIsOpen, setSelectInviteesListIsOpen] =
+    useState(false);
   const [participantsExceptListIsOpen, setParticipantsExceptIsOpen] =
     useState(false);
   const [participantsAcceptListIsOpen, setParticipantsAcceptIsOpen] =
@@ -80,13 +82,10 @@ const PlanBox = ({
     useState(false);
   const [deleteConfirmDialogIsOpen, setDeleteConfirmDialogIsOpen] =
     useState(false);
-  const [likersArray, setLikersArray] = useState([]);
-  const [participantsArray, setParticipantsArray] = useState([]);
-  const [blackUserArray, setBlackUserArray] = useState([]);
-  const [friendsArray, setFriendsArray] = useState([]);
+  const [personsArray, setPersonsArray] = useState([]);
   const [menuList, setMenuList] = useState([]);
   const [selectUserId, setSelectUserId] = useState(null);
-  const [selectFriends, setSelectFriends] = useState([]);
+  const [selectUsers, setSelectUsers] = useState([]);
   const planBackContentsRef = useRef(null);
   const planBackRef = useRef(null);
   const { userData } = useUserData();
@@ -103,6 +102,7 @@ const PlanBox = ({
     deletePlanFunc,
     resumePlanFunc,
     invitationPlanFunc,
+    cancelInvitationPlanFunc,
   } = usePlanFunc();
   const { setSnackbarInfo } = useSnackbarInfo();
   const { setSnackbarIsShow } = useSnackbarShowFlg();
@@ -176,17 +176,34 @@ const PlanBox = ({
         onClickFunc: (e) => dispAcceptParticipants(e),
       });
     }
-    if (organizerId === userData._id && userData.friends.length > 0) {
+    if (
+      organizerId === userData._id &&
+      userData.friends.length > 0 &&
+      deadLine === '' &&
+      isClosedPlanByDefaultDeadLine(date) === false &&
+      (limit === 0 || (limit > 0 && limit > participants.length))
+    ) {
       menuArray.push({
         text: '友達をプランに招待する',
         icon: <GroupAddIcon />,
         onClickFunc: (e) => dispFriends(e),
       });
     }
+    if (organizerId === userData._id && invitees.length > 0) {
+      menuArray.push({
+        text: 'プランへの招待を取り消す',
+        icon: <GroupRemoveIcon />,
+        onClickFunc: (e) => dispInvitees(e),
+      });
+    }
     setMenuList(menuArray);
-    setParticipantsArray(participants);
-    setBlackUserArray(blackUsers);
-    setLikersArray(likers);
+    if (likersListIsOpen) {
+      setPersonsArray(convertList(likers));
+    } else if (participantsListIsOpen || participantsExceptListIsOpen) {
+      setPersonsArray(convertList(participants));
+    } else if (participantsAcceptListIsOpen) {
+      setPersonsArray(convertList(blackUsers));
+    }
     setContentsHeight(planBackContentsRef.current.scrollHeight);
   }, [plans]);
 
@@ -198,35 +215,41 @@ const PlanBox = ({
 
   const dispLikers = () => {
     const convertLikers = convertList(likers);
-    setLikersArray([...convertLikers]);
+    setPersonsArray([...convertLikers]);
     setLikersListIsOpen(true);
   };
   const dispParticipants = () => {
     const convertParticipants = convertList(participants);
-    setParticipantsArray([...convertParticipants]);
+    setPersonsArray([...convertParticipants]);
     setParticipantsIsOpen(true);
   };
   const dispExceptParticipants = () => {
     const convertParticipants = convertList(participants);
-    setParticipantsArray([...convertParticipants]);
+    setPersonsArray([...convertParticipants]);
     setParticipantsExceptIsOpen(true);
   };
   const dispAcceptParticipants = () => {
     const convertBlackUsers = convertList(blackUsers);
-    setBlackUserArray([...convertBlackUsers]);
+    setPersonsArray([...convertBlackUsers]);
     setParticipantsAcceptIsOpen(true);
   };
 
   const dispFriends = () => {
     const convertFriends = convertList(userData.friends);
-    setFriendsArray([...convertFriends]);
+    setPersonsArray([...convertFriends]);
     setSelectFriendsListIsOpen(true);
   };
 
-  const createNotifications = async (e) => {
+  const dispInvitees = () => {
+    const convertInvitees = convertList(invitees);
+    setPersonsArray([...convertInvitees]);
+    setSelectInviteesListIsOpen(true);
+  };
+
+  const invitationPlan = async (e) => {
     e.preventDefault();
     const { success } = await invitationPlanFunc({
-      invitee_ids: selectFriends,
+      invitee_ids: selectUsers,
       user_id: userData._id,
       plan_id: planId,
     });
@@ -234,7 +257,7 @@ const PlanBox = ({
       const copyPlans = [...plans];
       const planIndex = copyPlans.findIndex((plan) => plan._id === planId);
       await Promise.all(
-        selectFriends.map(async (selectFriend) => {
+        selectUsers.map(async (selectFriend) => {
           const friend = await fetchUserByIdFunc(selectFriend);
           copyPlans[planIndex].invitees.push({
             desc: friend.desc,
@@ -245,12 +268,39 @@ const PlanBox = ({
         })
       );
       setPlans(copyPlans);
+      closeSelectFriendsDialog();
     }
   };
 
-  const closeDialog = () => {
-    setSelectFriends([]);
+  const cancelInvitationPlan = async (e) => {
+    e.preventDefault();
+    const { success } = await cancelInvitationPlanFunc({
+      invitee_ids: selectUsers,
+      user_id: userData._id,
+      plan_id: planId,
+    });
+    if (success) {
+      const copyPlans = [...plans];
+      const planIndex = copyPlans.findIndex((plan) => plan._id === planId);
+      selectUsers.map((selectFriend) => {
+        const inviteeIndex = copyPlans[planIndex].invitees.findIndex(
+          (invitee) => invitee._id === selectFriend
+        );
+        copyPlans[planIndex].invitees.splice(inviteeIndex, 1);
+      });
+      setPlans(copyPlans);
+      closeSelectInviteesDialog();
+    }
+  };
+
+  const closeSelectFriendsDialog = () => {
+    setSelectUsers([]);
     setSelectFriendsListIsOpen(false);
+  };
+
+  const closeSelectInviteesDialog = () => {
+    setSelectUsers([]);
+    setSelectInviteesListIsOpen(false);
   };
 
   const deletePlan = async (e) => {
@@ -388,13 +438,13 @@ const PlanBox = ({
     setAcceptConfirmDialogIsOpen(true);
   };
   const selectInviteFriend = (friend) => {
-    const selectFriendIndex = selectFriends.findIndex((x) => x === friend);
+    const selectFriendIndex = selectUsers.findIndex((x) => x === friend);
     if (selectFriendIndex === -1) {
-      setSelectFriends((prev) => [...prev, friend]);
+      setSelectUsers((prev) => [...prev, friend]);
     } else {
-      const copySelectFriends = [...selectFriends];
+      const copySelectFriends = [...selectUsers];
       copySelectFriends.splice(selectFriendIndex, 1);
-      setSelectFriends(copySelectFriends);
+      setSelectUsers(copySelectFriends);
     }
   };
 
@@ -431,6 +481,7 @@ const PlanBox = ({
         copyPlans[planIndex].images.splice(0, 1);
       }
       setPlans(copyPlans);
+      setSelectUserId(null);
     }
   };
 
@@ -450,6 +501,7 @@ const PlanBox = ({
       );
       copyPlans[planIndex].blackUsers.splice(blackUserIndex, 1);
       setPlans(copyPlans);
+      setSelectUserId(null);
     }
   };
 
@@ -663,14 +715,14 @@ const PlanBox = ({
         isOpen={likersListIsOpen}
         setIsOpen={setLikersListIsOpen}
       >
-        <PersonList listData={likersArray} pagePath='/Profile' />
+        <PersonList listData={personsArray} pagePath='/Profile' />
       </CommonDialog>
       <CommonDialog
         dialogTitle='プランの参加者を表示'
         isOpen={participantsListIsOpen}
         setIsOpen={setParticipantsIsOpen}
       >
-        <PersonList listData={participantsArray} pagePath='/Profile' />
+        <PersonList listData={personsArray} pagePath='/Profile' />
       </CommonDialog>
       <CommonDialog
         dialogTitle='参加者をプランから除外'
@@ -678,7 +730,7 @@ const PlanBox = ({
         setIsOpen={setParticipantsExceptIsOpen}
       >
         <PersonList
-          listData={participantsArray}
+          listData={personsArray}
           pagePath='/Profile'
           participants={participants}
           onClick={(e, participantId) => selectExceptUser(e, participantId)}
@@ -692,7 +744,7 @@ const PlanBox = ({
         setIsOpen={setParticipantsAcceptIsOpen}
       >
         <PersonList
-          listData={blackUserArray}
+          listData={personsArray}
           pagePath='/Profile'
           participants={participants}
           onClick={(e, blackUserId) => selectAcceptUser(e, blackUserId)}
@@ -704,26 +756,49 @@ const PlanBox = ({
         dialogTitle='招待する友達を選択'
         isOpen={selectFriendsListIsOpen}
         setIsOpen={setSelectFriendsListIsOpen}
+        setList={setSelectUsers}
       >
         <PersonList
-          listData={friendsArray}
+          listData={personsArray}
           pagePath='/Profile'
           onChange={(friend) => selectInviteFriend(friend)}
           withActionButton
-          selectUsers={selectFriends}
+          selectUsers={selectUsers}
           invitees={invitees}
           participants={participants}
         />
         <DialogActions>
-          <Button color='error' onClick={() => closeDialog()}>
+          <Button color='error' onClick={() => closeSelectFriendsDialog()}>
+            キャンセル
+          </Button>
+          <Button color='primary' onClick={(e) => invitationPlan(e)} autoFocus>
+            招待する
+          </Button>
+        </DialogActions>
+      </CommonDialog>
+      <CommonDialog
+        dialogTitle='招待をキャンセルするユーザを選択'
+        isOpen={selectInviteesListIsOpen}
+        setIsOpen={setSelectInviteesListIsOpen}
+        setList={setSelectUsers}
+      >
+        <PersonList
+          listData={personsArray}
+          pagePath='/Profile'
+          onChange={(friend) => selectInviteFriend(friend)}
+          withActionButton
+          selectUsers={selectUsers}
+        />
+        <DialogActions>
+          <Button color='error' onClick={() => closeSelectInviteesDialog()}>
             キャンセル
           </Button>
           <Button
             color='primary'
-            onClick={(e) => createNotifications(e)}
+            onClick={(e) => cancelInvitationPlan(e)}
             autoFocus
           >
-            招待する
+            招待を取り消す
           </Button>
         </DialogActions>
       </CommonDialog>

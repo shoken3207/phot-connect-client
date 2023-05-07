@@ -141,8 +141,37 @@ const usePlanFunc = () => {
 
   const invitationPlanFunc = useCallback(async (option) => {
     try {
+      if (option.invitee_ids.length === 0) {
+        setSnackbarInfo({ text: '選択されていません。', severity: 'warning' });
+        setSnackbarIsShow(true);
+        return { success: false };
+      }
       const response = await axios.post(
         `${BASE_API_URL}/plan/invitation`,
+        option
+      );
+      if (response.data.message !== '') {
+        setSnackbarInfo({ text: response.data.message, severity: 'success' });
+        setSnackbarIsShow(true);
+      }
+      return { success: true };
+    } catch (err) {
+      const { response } = err;
+      setSnackbarInfo({ text: response.data.message, severity: 'warning' });
+      setSnackbarIsShow(true);
+      return { success: false };
+    }
+  });
+
+  const cancelInvitationPlanFunc = useCallback(async (option) => {
+    try {
+      if (option.invitee_ids.length === 0) {
+        setSnackbarInfo({ text: '選択されていません。', severity: 'warning' });
+        setSnackbarIsShow(true);
+        return { success: false };
+      }
+      const response = await axios.post(
+        `${BASE_API_URL}/plan/cancelInvitation`,
         option
       );
       if (response.data.message !== '') {
@@ -199,6 +228,7 @@ const usePlanFunc = () => {
     closePlanFunc,
     resumePlanFunc,
     invitationPlanFunc,
+    cancelInvitationPlanFunc,
     updatePlanFunc,
     participationPlanFunc,
     leavePlanFunc,

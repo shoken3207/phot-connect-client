@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import { AVATAR_COLOR, REACTION_AVATAR_ICONS, prefectureArray } from '../const';
-import InfiniteScroll from 'react-infinite-scroller';
 import PersonList from '../components/CommonList';
 import CommonDialog from '../components/CommonDialog';
 import { Button } from '@mui/material';
@@ -23,6 +22,7 @@ const test = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [menuIsOpen, setMenuIsOpen] = useState(false);
   const [height, setHeight] = useState(0);
+  const [onClickFunc, setOnClickFunc] = useState(null);
   const element = useRef(null);
   const options = ['Option 1', 'Option 2'];
   const array = [
@@ -42,7 +42,15 @@ const test = () => {
     { title: 'aaaaaaaaaaaaaaa', desc: 'dddddddddddddddddddddd' },
     { title: 'aaaaaaaaaaaaaaa', desc: 'dddddddddddddddddddddd' },
   ];
-
+  const sayHello = () => {
+    console.log('hello');
+  };
+  useEffect(() => {
+    setOnClickFunc(() => sayHello());
+    console.log('call');
+    console.log(onClickFunc);
+    onClickFunc();
+  }, []);
   const menuData = [
     {
       title: 'Anker',
@@ -484,17 +492,6 @@ const test = () => {
       {/* <CommonFullScreenDialog>
         <NotificationList notifications={notifications} />
       </CommonFullScreenDialog> */}
-      <div style={root_style}>
-        <InfiniteScroll
-          loadMore={loadMore} //項目を読み込む際に処理するコールバック関数
-          hasMore={true} //読み込みを行うかどうかの判定
-          loader={loader}
-        >
-          {' '}
-          {/* 読み込み最中に表示する項目 */}
-          {items} {/* 無限スクロールで表示する項目 */}
-        </InfiniteScroll>
-      </div>
     </div>
   );
 };
