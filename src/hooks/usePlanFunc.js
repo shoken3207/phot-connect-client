@@ -139,6 +139,25 @@ const usePlanFunc = () => {
     }
   });
 
+  const invitationPlanFunc = useCallback(async (option) => {
+    try {
+      const response = await axios.post(
+        `${BASE_API_URL}/plan/invitation`,
+        option
+      );
+      if (response.data.message !== '') {
+        setSnackbarInfo({ text: response.data.message, severity: 'success' });
+        setSnackbarIsShow(true);
+      }
+      return { success: true };
+    } catch (err) {
+      const { response } = err;
+      setSnackbarInfo({ text: response.data.message, severity: 'warning' });
+      setSnackbarIsShow(true);
+      return { success: false };
+    }
+  });
+
   const likePlanFunc = useCallback(async (option) => {
     try {
       const response = await axios.post(`${BASE_API_URL}/plan/like`, option);
@@ -179,6 +198,7 @@ const usePlanFunc = () => {
     createPlanFunc,
     closePlanFunc,
     resumePlanFunc,
+    invitationPlanFunc,
     updatePlanFunc,
     participationPlanFunc,
     leavePlanFunc,

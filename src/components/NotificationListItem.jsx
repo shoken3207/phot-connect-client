@@ -35,6 +35,7 @@ const NotificationListItem = ({
       case NOTIFICATION_TYPE.EXCEPT_PLAN:
       case NOTIFICATION_TYPE.ACCEPT_PLAN:
       case NOTIFICATION_TYPE.LIKE_PLAN:
+      case NOTIFICATION_TYPE.INVITATION_PLAN:
         const plan = await fetchPlanFunc(contentId);
         const convertPlans = await convertPlanImages([plan]);
         setPlans(convertPlans);
@@ -108,6 +109,9 @@ const NotificationListItem = ({
       break;
     case NOTIFICATION_TYPE.REACTION_TALK:
       notificationText = 'さんがあなたのトークにリアクションしました。';
+      break;
+    case NOTIFICATION_TYPE.INVITATION_PLAN:
+      notificationText = 'さんがあなたをプランへ招待しました。';
       break;
     default:
       break;

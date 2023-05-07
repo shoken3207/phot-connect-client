@@ -44,6 +44,7 @@ const PlanList = memo(
               likers={planItem.likers}
               talkRoomId={planItem.talk_room_id}
               blackUsers={planItem.blackUsers}
+              invitees={planItem.invitees}
               plans={planList}
               setPlans={setPlans}
             />

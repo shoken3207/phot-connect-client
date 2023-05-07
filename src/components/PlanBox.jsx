@@ -19,7 +19,7 @@ import { useUserData } from '../provider/UserDataProvider';
 import { useRouter } from 'next/router';
 import usePlanFunc from '../hooks/usePlanFunc';
 import { convertToSaveDate, getPlanDate } from '../utils/dateUtils';
-import { IconButton, Tooltip } from '@mui/material';
+import { Button, DialogActions, IconButton, Tooltip } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EmojiPeopleIcon from '@mui/icons-material/EmojiPeople';
 import TimerOffIcon from '@mui/icons-material/TimerOff';
@@ -30,7 +30,7 @@ import PersonList from './CommonList';
 import ConfirmDialog from './ConfirmDialog';
 import MoreTimeIcon from '@mui/icons-material/MoreTime';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { CLOSED_PLAN_IMAGE_PATH } from '../const';
+import { CLOSED_PLAN_IMAGE_PATH, NOTIFICATION_TYPE } from '../const';
 import { convertList } from '../utils/convertData';
 import { useIsLoadingFlg } from '../provider/IsLoadingFlgProvider';
 import { useSnackbarInfo } from '../provider/SnackbarInfoProvider';
@@ -60,12 +60,14 @@ const PlanBox = ({
   talkRoomId,
   setPlans,
   plans,
+  invitees,
 }) => {
   const [readMore, setReadMore] = useState(false);
   const [isFront, setIsFront] = useState(true);
   const [contentsHeight, setContentsHeight] = useState(null);
   const [likersListIsOpen, setLikersListIsOpen] = useState(false);
   const [participantsListIsOpen, setParticipantsIsOpen] = useState(false);
+  const [selectFriendsListIsOpen, setSelectFriendsListIsOpen] = useState(false);
   const [participantsExceptListIsOpen, setParticipantsExceptIsOpen] =
     useState(false);
   const [participantsAcceptListIsOpen, setParticipantsAcceptIsOpen] =
@@ -81,14 +83,16 @@ const PlanBox = ({
   const [likersArray, setLikersArray] = useState([]);
   const [participantsArray, setParticipantsArray] = useState([]);
   const [blackUserArray, setBlackUserArray] = useState([]);
+  const [friendsArray, setFriendsArray] = useState([]);
   const [menuList, setMenuList] = useState([]);
   const [selectUserId, setSelectUserId] = useState(null);
+  const [selectFriends, setSelectFriends] = useState([]);
   const planBackContentsRef = useRef(null);
   const planBackRef = useRef(null);
   const { userData } = useUserData();
   const { readTalksFunc } = useChatFunc();
   const { isLoading } = useIsLoadingFlg();
-  const { fetchPlanFunc } = useFetchData();
+  const { fetchPlanFunc, fetchUserByIdFunc } = useFetchData();
   const {
     participationPlanFunc,
     leavePlanFunc,
@@ -98,6 +102,7 @@ const PlanBox = ({
     closePlanFunc,
     deletePlanFunc,
     resumePlanFunc,
+    invitationPlanFunc,
   } = usePlanFunc();
   const { setSnackbarInfo } = useSnackbarInfo();
   const { setSnackbarIsShow } = useSnackbarShowFlg();
@@ -171,6 +176,13 @@ const PlanBox = ({
         onClickFunc: (e) => dispAcceptParticipants(e),
       });
     }
+    if (organizerId === userData._id && userData.friends.length > 0) {
+      menuArray.push({
+        text: '友達をプランに招待する',
+        icon: <GroupAddIcon />,
+        onClickFunc: (e) => dispFriends(e),
+      });
+    }
     setMenuList(menuArray);
     setParticipantsArray(participants);
     setBlackUserArray(blackUsers);
@@ -203,6 +215,42 @@ const PlanBox = ({
     const convertBlackUsers = convertList(blackUsers);
     setBlackUserArray([...convertBlackUsers]);
     setParticipantsAcceptIsOpen(true);
+  };
+
+  const dispFriends = () => {
+    const convertFriends = convertList(userData.friends);
+    setFriendsArray([...convertFriends]);
+    setSelectFriendsListIsOpen(true);
+  };
+
+  const createNotifications = async (e) => {
+    e.preventDefault();
+    const { success } = await invitationPlanFunc({
+      invitee_ids: selectFriends,
+      user_id: userData._id,
+      plan_id: planId,
+    });
+    if (success) {
+      const copyPlans = [...plans];
+      const planIndex = copyPlans.findIndex((plan) => plan._id === planId);
+      await Promise.all(
+        selectFriends.map(async (selectFriend) => {
+          const friend = await fetchUserByIdFunc(selectFriend);
+          copyPlans[planIndex].invitees.push({
+            desc: friend.desc,
+            icon_image: friend.icon_image,
+            username: friend.username,
+            _id: friend._id,
+          });
+        })
+      );
+      setPlans(copyPlans);
+    }
+  };
+
+  const closeDialog = () => {
+    setSelectFriends([]);
+    setSelectFriendsListIsOpen(false);
   };
 
   const deletePlan = async (e) => {
@@ -338,6 +386,16 @@ const PlanBox = ({
     e.preventDefault();
     setSelectUserId(blackUserId);
     setAcceptConfirmDialogIsOpen(true);
+  };
+  const selectInviteFriend = (friend) => {
+    const selectFriendIndex = selectFriends.findIndex((x) => x === friend);
+    if (selectFriendIndex === -1) {
+      setSelectFriends((prev) => [...prev, friend]);
+    } else {
+      const copySelectFriends = [...selectFriends];
+      copySelectFriends.splice(selectFriendIndex, 1);
+      setSelectFriends(copySelectFriends);
+    }
   };
 
   const exceptPlan = async (e, participantId) => {
@@ -641,6 +699,33 @@ const PlanBox = ({
           withActionButton
           accept
         />
+      </CommonDialog>
+      <CommonDialog
+        dialogTitle='招待する友達を選択'
+        isOpen={selectFriendsListIsOpen}
+        setIsOpen={setSelectFriendsListIsOpen}
+      >
+        <PersonList
+          listData={friendsArray}
+          pagePath='/Profile'
+          onChange={(friend) => selectInviteFriend(friend)}
+          withActionButton
+          selectUsers={selectFriends}
+          invitees={invitees}
+          participants={participants}
+        />
+        <DialogActions>
+          <Button color='error' onClick={() => closeDialog()}>
+            キャンセル
+          </Button>
+          <Button
+            color='primary'
+            onClick={(e) => createNotifications(e)}
+            autoFocus
+          >
+            招待する
+          </Button>
+        </DialogActions>
       </CommonDialog>
       <ConfirmDialog
         isOpen={closeConfirmDialogIsOpen}

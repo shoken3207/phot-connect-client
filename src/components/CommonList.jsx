@@ -7,24 +7,36 @@ import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useUserData } from '../provider/UserDataProvider';
 import styled from 'styled-components';
-import { Button } from '@mui/material';
+import { Button, Checkbox } from '@mui/material';
 const PersonList = memo(
   ({
     listData,
     setListData,
     pagePath,
+    onChange,
     onClick,
     friendAdd,
     withActionButton,
     except,
     accept,
     removeReaction,
+    selectUsers,
+    invitees,
+    participants,
     chat,
   }) => {
     const { userData } = useUserData();
     const isFriend = (userId) => {
       const friend = userData.friends.find((x) => x._id === userId);
       return !!friend;
+    };
+    const isInvitee = (userId) => {
+      const invitee = invitees.find((x) => x._id === userId);
+      return !!invitee;
+    };
+    const isParticipant = (userId) => {
+      const participant = participants.find((x) => x._id === userId);
+      return !!participant;
     };
 
     return (
@@ -69,8 +81,7 @@ const PersonList = memo(
                       >
                         <GroupRemoveIcon />
                       </Button>
-                    ) : (
-                      removeReaction &&
+                    ) : removeReaction ? (
                       itemData.id === userData._id && (
                         <Button
                           size='large'
@@ -80,6 +91,16 @@ const PersonList = memo(
                         >
                           <DeleteIcon />
                         </Button>
+                      )
+                    ) : (
+                      selectUsers && (
+                        <Checkbox
+                          disabled={
+                            isParticipant(itemData.id) || isInvitee(itemData.id)
+                          }
+                          checked={selectUsers.includes(itemData.id)}
+                          onChange={(e) => onChange(itemData.id)}
+                        />
                       )
                     )
                   }
