@@ -30,7 +30,7 @@ import PersonList from './CommonList';
 import ConfirmDialog from './ConfirmDialog';
 import MoreTimeIcon from '@mui/icons-material/MoreTime';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { CLOSED_PLAN_IMAGE_PATH, NOTIFICATION_TYPE } from '../const';
+import { CLOSED_PLAN_IMAGE_PATH } from '../const';
 import { convertList } from '../utils/convertData';
 import { useIsLoadingFlg } from '../provider/IsLoadingFlgProvider';
 import { useSnackbarInfo } from '../provider/SnackbarInfoProvider';
@@ -40,6 +40,7 @@ import {
   isClosedPlanByDefaultDeadLine,
 } from '../utils/planUtils';
 import useFetchData from '../hooks/useFetchData';
+import { convertToDispDesc } from '../utils/commonUtils';
 
 const PlanBox = ({
   planId,
@@ -62,6 +63,7 @@ const PlanBox = ({
   plans,
   invitees,
 }) => {
+  const router = useRouter();
   const [readMore, setReadMore] = useState(false);
   const [isFront, setIsFront] = useState(true);
   const [contentsHeight, setContentsHeight] = useState(null);
@@ -114,7 +116,6 @@ const PlanBox = ({
     const participation = participants.find((x) => x._id === userData._id);
     return !!participation;
   };
-  const router = useRouter();
 
   useEffect(() => {
     const menuArray = [
@@ -268,7 +269,7 @@ const PlanBox = ({
         })
       );
       setPlans(copyPlans);
-      closeSelectFriendsDialog();
+      closeSelectUserDialog();
     }
   };
 
@@ -289,17 +290,13 @@ const PlanBox = ({
         copyPlans[planIndex].invitees.splice(inviteeIndex, 1);
       });
       setPlans(copyPlans);
-      closeSelectInviteesDialog();
+      closeSelectUserDialog();
     }
   };
 
-  const closeSelectFriendsDialog = () => {
+  const closeSelectUserDialog = () => {
     setSelectUsers([]);
     setSelectFriendsListIsOpen(false);
-  };
-
-  const closeSelectInviteesDialog = () => {
-    setSelectUsers([]);
     setSelectInviteesListIsOpen(false);
   };
 
@@ -437,14 +434,14 @@ const PlanBox = ({
     setSelectUserId(blackUserId);
     setAcceptConfirmDialogIsOpen(true);
   };
-  const selectInviteFriend = (friend) => {
-    const selectFriendIndex = selectUsers.findIndex((x) => x === friend);
-    if (selectFriendIndex === -1) {
-      setSelectUsers((prev) => [...prev, friend]);
+  const selectUser = (user) => {
+    const selectUserIndex = selectUsers.findIndex((x) => x === user);
+    if (selectUserIndex === -1) {
+      setSelectUsers((prev) => [...prev, user]);
     } else {
-      const copySelectFriends = [...selectUsers];
-      copySelectFriends.splice(selectFriendIndex, 1);
-      setSelectUsers(copySelectFriends);
+      const copySelectUsers = [...selectUsers];
+      copySelectUsers.splice(selectUserIndex, 1);
+      setSelectUsers(copySelectUsers);
     }
   };
 
@@ -642,7 +639,11 @@ const PlanBox = ({
           >
             <div>
               <h2>{title}</h2>
-              <p dangerouslySetInnerHTML={{ __html: desc }}></p>
+              <p
+                dangerouslySetInnerHTML={{
+                  __html: desc && convertToDispDesc(desc),
+                }}
+              ></p>
               <div>
                 {chipTexts.map((chipText) => (
                   <Tooltip key={chipText} title='タグで検索'>
@@ -761,14 +762,14 @@ const PlanBox = ({
         <PersonList
           listData={personsArray}
           pagePath='/Profile'
-          onChange={(friend) => selectInviteFriend(friend)}
+          onChange={(friend) => selectUser(friend)}
           withActionButton
           selectUsers={selectUsers}
           invitees={invitees}
           participants={participants}
         />
         <DialogActions>
-          <Button color='error' onClick={() => closeSelectFriendsDialog()}>
+          <Button color='error' onClick={() => closeSelectUserDialog()}>
             キャンセル
           </Button>
           <Button color='primary' onClick={(e) => invitationPlan(e)} autoFocus>
@@ -785,12 +786,12 @@ const PlanBox = ({
         <PersonList
           listData={personsArray}
           pagePath='/Profile'
-          onChange={(friend) => selectInviteFriend(friend)}
+          onChange={(invitee) => selectUser(invitee)}
           withActionButton
           selectUsers={selectUsers}
         />
         <DialogActions>
-          <Button color='error' onClick={() => closeSelectInviteesDialog()}>
+          <Button color='error' onClick={() => closeSelectUserDialog()}>
             キャンセル
           </Button>
           <Button
@@ -835,16 +836,16 @@ const PlanBox = ({
 };
 
 const SPlanBox = styled.div`
+  --box-shadow-right: 9px;
+  --box-shadow-bottom: 8px;
   opacity: ${(props) => (props.isLoading ? 0 : 1)};
   transform: ${(props) => (props.isLoading ? 'translateY(30px)' : 'none')};
   font-family: 'Noto Sans JP', sans-serif;
   font-family: 'Noto Serif JP', serif;
   font-family: 'Poppins', sans-serif;
   margin-top: 2rem;
-  width: 90%;
   position: relative;
-  max-width: 300px;
-  min-height: 340px;
+  width: 300px;
   height: ${(props) =>
     !props.isFront && props.readMore
       ? `calc(152px + ${props.contentsHeight}px)`
@@ -853,11 +854,10 @@ const SPlanBox = styled.div`
   overflow: hidden;
 
   > div {
-    width: calc(100% - 9px);
-    height: calc(100% - 8px);
-    min-height: calc(100% - 8px);
-    background-color: #fff;
     box-shadow: 9px 8px 14px -10px #777777;
+    width: calc(100% - var(--box-shadow-right));
+    height: calc(100% - var(--box-shadow-bottom));
+    background-color: #fff;
     border-radius: 10px;
     transition: all 0.4s cubic-bezier(0.12, 0, 0.39, 0);
     position: absolute;

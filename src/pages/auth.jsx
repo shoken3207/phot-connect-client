@@ -88,7 +88,7 @@ export default Home;
 
 const SContainer = styled.div`
   width: 100%;
-  height: calc(100vh - 85px);
+  height: calc(100vh - 90px);
   background-image: linear-gradient(
     90deg,
     rgba(226, 207, 255, 1),

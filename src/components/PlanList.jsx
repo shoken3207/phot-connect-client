@@ -1,15 +1,13 @@
 import { Pagination } from '@mui/material';
-import React, { memo } from 'react';
+import React, { memo, useEffect } from 'react';
 import styled from 'styled-components';
 import { MAX_LOAD_PLAN_COUNT } from '../const';
 import PlanBox from './PlanBox';
 const GridList = styled.div`
-  /* display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr)); */
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   flex-wrap: wrap;
-  /* gap: 1rem; */
+  gap: 1rem;
   width: 95%;
   margin: 0 auto;
 `;
@@ -22,6 +20,10 @@ const PlanList = memo(
     currentPageIndex,
     setCurrentPageIndex,
   }) => {
+    useEffect(() => {
+      window.scroll({ top: 0 });
+      // window.scroll({ top: 0, behavior: 'smooth' });
+    }, [currentPageIndex]);
     return (
       <div>
         <GridList>
@@ -51,14 +53,16 @@ const PlanList = memo(
           ))}
         </GridList>
         {planCountVal > MAX_LOAD_PLAN_COUNT && (
-          <Pagination
-            count={Math.ceil(planCountVal / MAX_LOAD_PLAN_COUNT)}
-            variant='outlined'
-            size='large'
-            color='primary'
-            page={currentPageIndex}
-            onChange={(e, value) => setCurrentPageIndex(value)}
-          />
+          <SPaginatonWrapper>
+            <Pagination
+              count={Math.ceil(planCountVal / MAX_LOAD_PLAN_COUNT)}
+              variant='outlined'
+              size='large'
+              color='primary'
+              page={currentPageIndex}
+              onChange={(e, value) => setCurrentPageIndex(value)}
+            />
+          </SPaginatonWrapper>
         )}
       </div>
     );
@@ -66,3 +70,10 @@ const PlanList = memo(
 );
 
 export default PlanList;
+
+const SPaginatonWrapper = styled.div`
+  margin: 2rem 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+`;

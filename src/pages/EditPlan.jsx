@@ -113,7 +113,6 @@ const EditPlan = memo(() => {
       setSnackbarIsShow(true);
       return;
     }
-    const convertDesc = desc.replace(/\n/g, '<br>');
     const saveDate = plan.date === plan.date ? date : convertToSaveDate(date);
     const option = {
       user_id: userData._id,
@@ -122,7 +121,7 @@ const EditPlan = memo(() => {
       place,
       prefecture,
       date: saveDate,
-      desc: convertDesc,
+      desc,
       limit: convertLimit,
       tags: chipTexts,
       images,

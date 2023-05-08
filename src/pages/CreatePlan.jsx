@@ -89,14 +89,13 @@ const CreatePlan = () => {
       setSnackbarIsShow(true);
       return;
     }
-    const convertDesc = desc.replace(/\n/g, '<br>');
     const saveDate = convertToSaveDate(date);
     const option = {
       title,
       place,
       prefecture,
       date: saveDate,
-      desc: convertDesc,
+      desc,
       limit: convertLimit,
       tags: chipTexts,
       organizer_id: userData._id,

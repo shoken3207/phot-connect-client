@@ -6,6 +6,7 @@ import { MAX_LOAD_PLAN_COUNT } from '../../const';
 import useFetchData from '../../hooks/useFetchData';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../../firebase/main';
+import { convertToDispDesc } from '../../utils/commonUtils';
 
 const Profile = () => {
   const [createPlans, setCreatePlans] = useState([]);
@@ -74,7 +75,11 @@ const Profile = () => {
           <td>{userInfo.birthday}</td>
         </tr>
         <tr>
-          <td>{userInfo.desc}</td>
+          <td
+            dangerouslySetInnerHTML={{
+              __html: userInfo.desc && convertToDispDesc(userInfo.desc),
+            }}
+          ></td>
         </tr>
       </SProfileInfo>
       <PlanList
@@ -94,8 +99,8 @@ const SProfile = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  max-width: 600px;
-  margin: 0 auto;
+  /* margin: 0 auto;
+  max-width: 600px; */
   row-gap: 0.6rem;
 `;
 

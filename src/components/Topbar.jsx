@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -18,13 +18,16 @@ import LinkWrap from './LinkWrap';
 import { useRouter } from 'next/router';
 import CommonMenu from './CommonMenu';
 import { auth } from '../firebase/main';
-import CommonDialog from './CommonDialog';
 import PlanList from './PlanList';
 import useFetchData from '../hooks/useFetchData';
 import { MAX_LOAD_PLAN_COUNT } from '../const';
 import { useIsOpenFullScreenDialog } from '../provider/IsOpenFullScreenDialogProvider';
+import CommonFullScreenDialog from './CommonFullScreenDialog';
 const TopBar = memo(({ setIsOpen }) => {
   const router = useRouter();
+  const topBarRef = useRef();
+  const [fullScreenDialogTitle, setFullScreenDialogTitle] = useState('');
+  const [topBarHeight, setTopBarHeight] = useState(0);
   const { userData, setUserData } = useUserData();
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const [plans, setPlans] = useState([]);
@@ -80,6 +83,10 @@ const TopBar = memo(({ setIsOpen }) => {
     }
   }, [dialogIsOpen]);
 
+  useEffect(() => {
+    setTopBarHeight(topBarRef.current?.clientHeight);
+  }, [router.pathname]);
+
   const transitionProfilePage = (e) => {
     e.preventDefault();
     router.push(`/Profile/${userData._id}`);
@@ -102,6 +109,7 @@ const TopBar = memo(({ setIsOpen }) => {
       MAX_LOAD_PLAN_COUNT
     );
     if (likedPlans.length > 0) {
+      setFullScreenDialogTitle('「いいね！」したプラン');
       setPlans(likedPlans);
       setPlanCountVal(planCount);
       setDialogIsOpen(true);
@@ -117,6 +125,7 @@ const TopBar = memo(({ setIsOpen }) => {
         MAX_LOAD_PLAN_COUNT
       );
     if (participatedPlans.length > 0) {
+      setFullScreenDialogTitle('参加したプラン');
       setPlans(participatedPlans);
       setPlanCountVal(planCount);
       setDialogIsOpen(true);
@@ -137,82 +146,87 @@ const TopBar = memo(({ setIsOpen }) => {
   }
 
   return (
-    <AppBar color='inherit' position='fixed' sx={appBarStyle}>
-      <Toolbar>
-        <>
-          {!!userData._id &&
-          (basePath === 'TalkRoom' ||
-            basePath === 'Profile' ||
-            (isOpenFullScreenDialog && basePath === 'Chat')) ? (
-            <IconButton
-              size='large'
-              edge='start'
-              color='inherit'
-              aria-label='menu'
-              sx={{ mr: 2 }}
-              onClick={() => router.back()}
-            >
-              <ArrowBackIosIcon />
-            </IconButton>
-          ) : (
-            !!userData._id && (
+    <div style={{ paddingTop: topBarHeight }}>
+      <AppBar ref={topBarRef} color='inherit' position='fixed' sx={appBarStyle}>
+        <Toolbar>
+          <>
+            {!!userData._id &&
+            (basePath === 'TalkRoom' ||
+              basePath === 'Profile' ||
+              (isOpenFullScreenDialog && basePath === 'Chat')) ? (
               <IconButton
                 size='large'
                 edge='start'
                 color='inherit'
                 aria-label='menu'
                 sx={{ mr: 2 }}
-                onClick={() => setIsOpen(true)}
+                onClick={() => router.back()}
               >
-                <MenuIcon />
+                <ArrowBackIosIcon />
               </IconButton>
-            )
-          )}
-          {!!userData._id ? (
-            <>
-              {' '}
-              <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
-                {userData.username || 'unknown'}
-              </Typography>
-              {basePath === 'Home' && (
-                <Tooltip title='通知'>
-                  <IconButton onClick={() => setIsOpenFullScreenDialog(true)}>
-                    {notificationCount > 0 ? (
-                      <Badge badgeContent={notificationCount} color='secondary'>
+            ) : (
+              !!userData._id && (
+                <IconButton
+                  size='large'
+                  edge='start'
+                  color='inherit'
+                  aria-label='menu'
+                  sx={{ mr: 2 }}
+                  onClick={() => setIsOpen(true)}
+                >
+                  <MenuIcon />
+                </IconButton>
+              )
+            )}
+            {!!userData._id ? (
+              <>
+                {' '}
+                <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
+                  {userData.username || 'unknown'}
+                </Typography>
+                {basePath === 'Home' && (
+                  <Tooltip title='通知'>
+                    <IconButton onClick={() => setIsOpenFullScreenDialog(true)}>
+                      {notificationCount > 0 ? (
+                        <Badge
+                          badgeContent={notificationCount}
+                          color='secondary'
+                        >
+                          <NotificationsIcon fontSize='large' />
+                        </Badge>
+                      ) : (
                         <NotificationsIcon fontSize='large' />
-                      </Badge>
-                    ) : (
-                      <NotificationsIcon fontSize='large' />
-                    )}
-                  </IconButton>
-                </Tooltip>
-              )}
-              <CommonMenu menuArray={menuList}>
-                <Avatar src={userData.icon_image} />
-              </CommonMenu>
-            </>
-          ) : (
-            <LinkWrap href='/auth'>
-              <SImage src='/images/logo.png' alt='' />
-            </LinkWrap>
-          )}
-        </>
-      </Toolbar>
+                      )}
+                    </IconButton>
+                  </Tooltip>
+                )}
+                <CommonMenu menuArray={menuList}>
+                  <Avatar src={userData.icon_image} />
+                </CommonMenu>
+              </>
+            ) : (
+              <LinkWrap href='/auth'>
+                <SImage src='/images/logo.png' alt='' />
+              </LinkWrap>
+            )}
+          </>
+        </Toolbar>
 
-      <CommonDialog
-        isOpen={dialogIsOpen}
-        setIsOpen={setDialogIsOpen}
-        dialogTitle='あなたが「いいね！」したプランです。'
-      >
-        <PlanList
-          planList={plans}
-          setPlans={setPlans}
-          planCountVal={planCountVal}
-          currentPageIndex={currentPageIndex}
-          setCurrentPageIndex={setCurrentPageIndex}
-        />
-      </CommonDialog>
-    </AppBar>
+        <CommonFullScreenDialog
+          isOpenFullScreenDialog={dialogIsOpen}
+          setIsOpenFullScreenDialog={setDialogIsOpen}
+          title={fullScreenDialogTitle}
+        >
+          <PlanList
+            planList={plans}
+            setPlans={setPlans}
+            planCountVal={planCountVal}
+            currentPageIndex={currentPageIndex}
+            setCurrentPageIndex={setCurrentPageIndex}
+          />
+        </CommonFullScreenDialog>
+      </AppBar>
+    </div>
   );
 });
 

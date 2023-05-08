@@ -68,14 +68,11 @@ const EditProfile = memo(() => {
       setSnackbarIsShow(true);
       return;
     }
-    let convertDesc = '';
-    if (!!desc) {
-      convertDesc = desc.replace(/\n/g, '<br>');
-    }
+
     const option = {
       user_id: userData._id,
       username,
-      desc: convertDesc,
+      desc: desc || '',
       birthday,
       prefecture,
       icon_image: iconImage,

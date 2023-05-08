@@ -131,7 +131,12 @@ const PersonListItem = memo(
                   }
                   secondary={
                     <Typography variant='body2' noWrap>
-                      {secondaryText}
+                      {secondaryText.split('\n').map((line, index) => (
+                        <React.Fragment key={index}>
+                          {line}
+                          <br />
+                        </React.Fragment>
+                      ))}
                     </Typography>
                   }
                 />
@@ -143,7 +148,12 @@ const PersonListItem = memo(
                 }
                 secondary={
                   <Typography variant='body2' noWrap>
-                    {secondaryText}
+                    {secondaryText.split('\n').map((line, index) => (
+                      <React.Fragment key={index}>
+                        {line}
+                        <br />
+                      </React.Fragment>
+                    ))}
                   </Typography>
                 }
               />
