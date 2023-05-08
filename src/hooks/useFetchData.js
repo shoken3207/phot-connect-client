@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useCallback } from 'react';
-import { BASE_API_URL, LOADING_TIME } from '../const';
+import { LOADING_TIME } from '../const';
 import { useIsLoadingFlg } from '../provider/IsLoadingFlgProvider';
 import { useSnackbarInfo } from '../provider/SnackbarInfoProvider';
 import { useSnackbarShowFlg } from '../provider/SnackbarShowFlgProvider';
@@ -10,6 +10,7 @@ const useFetchData = () => {
   const { setSnackbarInfo } = useSnackbarInfo();
   const { setSnackbarIsShow } = useSnackbarShowFlg();
   const { setIsLoading } = useIsLoadingFlg();
+  const BASE_API_URL = process.env.NEXT_PUBLIC_BASE_API_URL;
 
   const fetchUserByIdFunc = useCallback(async (userId) => {
     try {

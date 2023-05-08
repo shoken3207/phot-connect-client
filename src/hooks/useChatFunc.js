@@ -1,13 +1,12 @@
 import axios from 'axios';
 import { useCallback } from 'react';
-import { BASE_API_URL } from '../const';
 import { useSnackbarInfo } from '../provider/SnackbarInfoProvider';
 import { useSnackbarShowFlg } from '../provider/SnackbarShowFlgProvider';
 
 const useChatFunc = () => {
   const { setSnackbarInfo } = useSnackbarInfo();
   const { setSnackbarIsShow } = useSnackbarShowFlg();
-
+  const BASE_API_URL = process.env.NEXT_PUBLIC_BASE_API_URL;
   const leaveTalkRoomFunc = useCallback(async (option) => {
     try {
       const response = await axios.post(

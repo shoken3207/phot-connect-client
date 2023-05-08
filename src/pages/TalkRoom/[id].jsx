@@ -7,7 +7,7 @@ import useFetchData from '../../hooks/useFetchData';
 import styled from 'styled-components';
 import io from 'socket.io-client';
 import useChatFunc from '../../hooks/useChatFunc';
-import { MAX_LOAD_TALK_COUNT, SERVER_URL } from '../../const';
+import { MAX_LOAD_TALK_COUNT } from '../../const';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../../firebase/main';
 
@@ -50,7 +50,7 @@ const TalkRoom = memo(() => {
   }, [user]);
   useEffect(() => {
     fetchTalkRoom();
-    socketRef.current = io(SERVER_URL);
+    socketRef.current = io(process.env.NEXT_PUBLIC_SERVER_URL);
     socketRef.current.on('connect', () => {
       console.log('WebSocket connected');
     });

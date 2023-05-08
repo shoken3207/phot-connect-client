@@ -9,14 +9,13 @@ import SelectImage from './SelectImage';
 import styled from 'styled-components';
 import { getSendMessageCompereDate } from '../utils/dateUtils';
 import io from 'socket.io-client';
-import { SERVER_URL } from '../const';
 
 const SendTalk = memo(
   ({ userId, iconImage, talkRoomId, setTalksLoadCount }) => {
     const [image, setImage] = useState();
     const [lastSendAt, setLastSendAt] = useState('');
     const [message, setMessage] = useState('');
-    const socket = io(SERVER_URL);
+    const socket = io(process.env.NEXT_PUBLIC_SERVER_URL);
     const { createTalkFunc } = useChatFunc();
     const { uploadImage } = useUploadImage();
     const sendTalk = async (e) => {

@@ -3,13 +3,14 @@ import { getAnalytics } from 'firebase/analytics';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 const firebaseConfig = {
-  apiKey: 'AIzaSyBOIg-Yaj93XuVOVcLfXBI02SVyKkkGjv4',
-  authDomain: 'photo-connect-aae70.firebaseapp.com',
-  projectId: 'photo-connect-aae70',
-  storageBucket: 'photo-connect-aae70.appspot.com',
-  messagingSenderId: '687874139576',
-  appId: '1:687874139576:web:ab40634f14875e1c731b4d',
-  measurementId: 'G-HMSPM4P3MW',
+  apiKey: process.env.NEXT_PUBLIC_API_KEY_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_API_KEY_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_API_KEY_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_API_KEY_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId:
+    process.env.NEXT_PUBLIC_API_KEY_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_API_KEY_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_API_KEY_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
