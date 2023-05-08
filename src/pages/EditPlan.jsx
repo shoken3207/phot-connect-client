@@ -174,18 +174,25 @@ const EditPlan = memo(() => {
         onChange={(e) => handleChange(e, setLimit)}
         defaultChecked
       />
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <DesktopDatePicker
-          id='date'
-          label='実施日を入力'
-          inputFormat='yyyy/MM/dd'
-          onChange={changeDate}
-          value={date}
-          renderInput={(params) => (
-            <TextField variant='standard' {...params} fullWidth />
-          )}
-        />
-      </LocalizationProvider>
+      <SWarningTextWrap>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <DesktopDatePicker
+            id='date'
+            label='実施日を入力'
+            inputFormat='yyyy/MM/dd'
+            onChange={changeDate}
+            value={date}
+            renderInput={(params) => (
+              <TextField variant='standard' {...params} fullWidth />
+            )}
+          />
+        </LocalizationProvider>
+        <SWarningText>
+          明日以降の日付を入力してください。
+          <br />
+          実施日の前日の23時59分59秒に自動で募集が締め切られます。
+        </SWarningText>
+      </SWarningTextWrap>
       <SelectPrefecture prefecture={prefecture} setPrefecture={setPrefecture} />
       <SAddChipText onSubmit={(e) => addChipText(e)}>
         <TextField
@@ -207,7 +214,7 @@ const EditPlan = memo(() => {
       {chipTexts.length > 0 && (
         <ChipList chipTexts={chipTexts} setChipTexts={setChipTexts} />
       )}
-      <SSelectImageWrap>
+      <SWarningTextWrap>
         <SelectImage
           id='iconImage'
           fullWidth
@@ -217,8 +224,10 @@ const EditPlan = memo(() => {
           icon={<InsertPhotoIcon />}
           setImage={setImages}
         />
-        {images.length === 0 && <p>画像を選択していません。</p>}
-      </SSelectImageWrap>
+        {images.length === 0 && (
+          <SWarningText>画像を選択していません。</SWarningText>
+        )}
+      </SWarningTextWrap>
 
       <Button
         fullWidth
@@ -258,15 +267,15 @@ const SAddChipText = styled.form`
   }
 `;
 
-const SSelectImageWrap = styled.div`
+const SWarningText = styled.p`
+  color: red;
+  font-size: 0.8rem;
+`;
+
+const SWarningTextWrap = styled.div`
   display: flex;
   flex-direction: column;
   row-gap: 0.2rem;
-
-  > p {
-    color: red;
-    font-size: 0.8rem;
-  }
 `;
 
 export default EditPlan;

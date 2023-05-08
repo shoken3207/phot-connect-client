@@ -84,7 +84,6 @@ const SelectImage = memo(
             type='file'
             multiple={multiple}
             accept={accept}
-            // onChange={(e) => console.log(e.target.files)}
             onChange={(e) => setImageFunc(e)}
           />
         </StyledButton>

@@ -32,7 +32,6 @@ const MessageBox = memo(
 
     const handleScroll = () => {
       if (chatContainerRef.current.scrollTop === 0) {
-        console.log('loaded');
         setTalksLoadCount((prev) => prev + 1);
         chatContainerRef.current.removeEventListener('scroll', this);
       }
