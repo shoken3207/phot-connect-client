@@ -12,3 +12,4 @@ export const IsLoadingFlgProvider = memo(({ children }) => {
   );
 });
 export const useIsLoadingFlg = () => useContext(IsLoadingFlgContext);
+IsLoadingFlgProvider.displayName = 'IsLoadingFlgProvider';

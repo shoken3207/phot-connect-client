@@ -34,3 +34,4 @@ const CommonButton = memo((props) => {
 });
 
 export default CommonButton;
+CommonButton.displayName = 'CommonButton';

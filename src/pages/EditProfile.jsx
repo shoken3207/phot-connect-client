@@ -196,3 +196,4 @@ const SSelectImageWrap = styled.div`
 `;
 
 export default EditProfile;
+EditProfile.displayName = 'EditProfile';

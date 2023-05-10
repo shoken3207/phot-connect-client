@@ -50,3 +50,4 @@ const Chat = memo(() => {
 });
 
 export default Chat;
+Chat.displayName = 'Chat';

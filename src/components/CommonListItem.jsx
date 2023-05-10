@@ -185,3 +185,4 @@ const PersonListItem = memo(
 );
 
 export default PersonListItem;
+PersonListItem.displayName = 'PersonListItem';

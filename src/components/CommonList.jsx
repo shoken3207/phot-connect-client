@@ -147,3 +147,4 @@ const SCommonList = styled.div`
 `;
 
 export default PersonList;
+PersonList.displayName = 'PersonList';

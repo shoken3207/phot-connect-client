@@ -12,3 +12,4 @@ export const SnackbarInfoProvider = memo(({ children }) => {
   );
 });
 export const useSnackbarInfo = () => useContext(SnackbarInfoContext);
+SnackbarInfoProvider.displayName = 'SnackbarInfoProvider';

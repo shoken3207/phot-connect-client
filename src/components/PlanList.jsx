@@ -77,3 +77,4 @@ const SPaginatonWrapper = styled.div`
   display: flex;
   justify-content: center;
 `;
+PlanList.displayName = 'PlanList';

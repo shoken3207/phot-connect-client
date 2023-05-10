@@ -90,3 +90,4 @@ const SSendTalk = styled.div`
     }
   }
 `;
+SendTalk.displayName = 'SendTalk';

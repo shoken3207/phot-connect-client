@@ -33,3 +33,4 @@ const CommonDialog = ({
 };
 
 export default CommonDialog;
+CommonDialog.displayName = 'CommonDialog';

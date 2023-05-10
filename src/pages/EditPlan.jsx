@@ -279,3 +279,4 @@ const SWarningTextWrap = styled.div`
 `;
 
 export default EditPlan;
+EditPlan.displayName = 'EditPlan';

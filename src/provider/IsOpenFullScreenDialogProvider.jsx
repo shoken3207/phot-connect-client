@@ -26,3 +26,4 @@ export const IsOpenFullScreenDialogProvider = memo(({ children }) => {
 });
 export const useIsOpenFullScreenDialog = () =>
   useContext(IsOpenFullScreenDialogContext);
+IsOpenFullScreenDialogProvider.displayName = 'IsOpenFullScreenDialogProvider';

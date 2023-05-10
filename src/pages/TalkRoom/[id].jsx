@@ -108,3 +108,4 @@ const SChat = styled.div`
   max-width: 800px;
   margin: 0 auto;
 `;
+TalkRoom.displayName = 'TalkRoom';

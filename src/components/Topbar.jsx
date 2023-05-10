@@ -237,3 +237,4 @@ const SImage = styled.img`
   height: 75px;
   cursor: pointer;
 `;
+TopBar.displayName = 'TopBar';

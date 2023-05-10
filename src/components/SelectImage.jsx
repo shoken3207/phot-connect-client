@@ -93,3 +93,4 @@ const SelectImage = memo(
 );
 
 export default SelectImage;
+SelectImage.displayName = 'SelectImage';

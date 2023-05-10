@@ -34,3 +34,4 @@ const ChipList = ({ chipTexts, setChipTexts }) => {
 };
 
 export default ChipList;
+ChipList.displayName = 'ChipList';

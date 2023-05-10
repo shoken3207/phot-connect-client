@@ -141,3 +141,4 @@ const SDispDate = styled.div`
     text-align: center;
   }
 `;
+MessageBox.displayName = 'MessageBox';

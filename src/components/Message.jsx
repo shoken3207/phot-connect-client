@@ -339,3 +339,4 @@ const SSendInfo = styled.div`
     }
   }
 `;
+Message.displayName = 'Message';

@@ -23,3 +23,4 @@ export const PageHistoryDataProvider = memo(({ children }) => {
 });
 
 export const usePageHistory = () => useContext(PageHistoryDataContext);
+PageHistoryDataProvider.displayName = 'PageHistoryDataProvider';

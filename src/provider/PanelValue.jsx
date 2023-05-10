@@ -20,3 +20,4 @@ export const PanelValueProvider = memo(({ children }) => {
 });
 
 export const usePanelValue = () => useContext(PanelValueContext);
+PanelValueProvider.displayName = 'PanelValueProvider';
