@@ -103,7 +103,7 @@ const Search = () => {
         return {
           primaryText: x.username,
           secondaryText: x.desc,
-          iconImage: x.iconImage,
+          iconImage: x.icon_image,
           id: x._id,
         };
       });

@@ -22,6 +22,7 @@ const PersonList = memo(
     removeReaction,
     selectUsers,
     invitees,
+    blackUsers,
     participants,
     chat,
   }) => {
@@ -37,6 +38,10 @@ const PersonList = memo(
     const isParticipant = (userId) => {
       const participant = participants.find((x) => x._id === userId);
       return !!participant;
+    };
+    const isBlackUser = (userId) => {
+      const blackUser = blackUsers.find((x) => x._id === userId);
+      return !!blackUser;
     };
 
     return (
@@ -96,6 +101,7 @@ const PersonList = memo(
                       selectUsers && (
                         <Checkbox
                           disabled={
+                            (blackUsers && isBlackUser(itemData.id)) ||
                             (participants && isParticipant(itemData.id)) ||
                             (invitees && isInvitee(itemData.id))
                           }

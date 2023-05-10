@@ -132,7 +132,7 @@ const NotificationListItem = ({
         </SContentImage>
       </SNotificationListItem>
       <CommonDialog
-        dialogTitle='ブラックリストから除去'
+        dialogTitle='通知プラン'
         isOpen={dialogIsOpen}
         setIsOpen={setDialogIsOpen}
       >

@@ -25,7 +25,9 @@ const CreatePlan = () => {
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [place, setPlace] = useState('');
-  const [prefecture, setPrefecture] = useState(undefined);
+  const [prefecture, setPrefecture] = useState(
+    userData._id && userData.prefecture
+  );
   const [limit, setLimit] = useState(0);
   const [chipText, setChipText] = useState('');
   const [chipTexts, setChipTexts] = useState([]);
@@ -139,7 +141,7 @@ const CreatePlan = () => {
       />
       <TextField
         id='limit'
-        label='制限人数を入力（特になければ0のまま）'
+        label='制限人数を入力 (特になければ0のまま)'
         fullWidth
         value={limit}
         variant='standard'
@@ -168,7 +170,7 @@ const CreatePlan = () => {
       <SAddChipText onSubmit={(e) => addChipText(e)}>
         <TextField
           id='desc'
-          label='チップテキストを入力'
+          label='タグを入力'
           fullWidth
           variant='standard'
           value={chipText}

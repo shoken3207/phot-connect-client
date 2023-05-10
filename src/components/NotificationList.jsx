@@ -7,13 +7,12 @@ const NotificationList = ({ notifications }) => {
   return (
     <SNotificationList>
       {notifications.map((notification, index) => (
-        <div>
+        <div key={notification._id}>
           {index === 0 && (
             <SDispDate>{getChatDispDate(notification.createdAt)}</SDispDate>
           )}
 
           <NotificationListItem
-            key={notification._id}
             actorId={notification.actor_id}
             actorName={notification.actor_name}
             actorImage={notification.actor_image}

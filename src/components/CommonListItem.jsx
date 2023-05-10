@@ -18,6 +18,7 @@ import { convertList } from '../utils/convertData';
 import ConfirmDialog from './ConfirmDialog';
 import CommonDialog from './CommonDialog';
 import PersonList from './CommonList';
+import useFetchData from '../hooks/useFetchData';
 
 const PersonListItem = memo(
   ({
@@ -36,7 +37,7 @@ const PersonListItem = memo(
     actionButton,
   }) => {
     const { readTalksFunc } = useChatFunc();
-    const { userData } = useUserData();
+    const { userData, setUserData } = useUserData();
     const [menuList, setMenuList] = useState([]);
     const [talkRoomMembersArray, setTalkRoomMembersArray] = useState([]);
     const [talkRoomMemberListIsOpen, setTalkRoomMemberListIsOpen] =
@@ -44,6 +45,7 @@ const PersonListItem = memo(
     const [leaveConfirmDialogIsOpen, setLeaveConfirmDialogIsOpen] =
       useState(false);
     const { leaveTalkRoomFunc } = useChatFunc();
+    const { fetchUserByIdFunc } = useFetchData();
     const router = useRouter();
 
     useEffect(() => {
@@ -94,6 +96,8 @@ const PersonListItem = memo(
         const listItemIndex = copyListData.findIndex((x) => x.id === id);
         copyListData.splice(listItemIndex, 1);
         setListData(copyListData);
+        const user = await fetchUserByIdFunc(userData._id);
+        setUserData(user);
       }
     };
 

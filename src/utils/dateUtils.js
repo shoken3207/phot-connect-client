@@ -69,6 +69,11 @@ export const getChatDispDate = (saveDate) => {
   return `${date.getMonth() + 1}月${date.getDate()}日(${getDay(saveDate)})`;
 };
 
+export const getDispBirthday = (saveDate) => {
+  const date = new Date(saveDate);
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+};
+
 const addZero = (value) => {
   const valLen = value.toString().length;
   let formatValue;

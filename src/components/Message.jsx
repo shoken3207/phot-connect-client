@@ -3,7 +3,6 @@ import LinkWrap from './LinkWrap';
 import styled from 'styled-components';
 import { getChatDate } from '../utils/dateUtils';
 import AddReactionIcon from '@mui/icons-material/AddReaction';
-import FormatQuoteIcon from '@mui/icons-material/FormatQuote';
 import SentimentVerySatisfiedIcon from '@mui/icons-material/SentimentVerySatisfied';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CommonMenu from './CommonMenu';
@@ -35,6 +34,7 @@ const Message = memo(
         readCount,
         reactors,
         isGroupTalkRoom,
+        chatContainerRef,
         talkId,
         talks,
         setTalks,
@@ -159,7 +159,6 @@ const Message = memo(
           setTalks(copyTalks);
         }
       };
-
       return (
         <SMessageWrap isSender={isSender} ref={ref}>
           <SMessageIcon isSender={isSender} senderIconImage={senderIconImage}>
@@ -170,7 +169,11 @@ const Message = memo(
               />
             </LinkWrap>
           </SMessageIcon>
-          <SMessageContent isSender={isSender} image={image}>
+          <SMessageContent
+            isSender={isSender}
+            image={image}
+            chatWidth={chatContainerRef.current?.clientWidth}
+          >
             <div>
               <SMessage
                 message={message}
@@ -271,7 +274,8 @@ const SMessageIcon = styled.div`
 
 const SMessageContent = styled.div`
   width: ${(props) => (props.image === '' ? 'fit-content' : '55%')};
-  max-width: 450px;
+  max-width: ${({ chatWidth }) =>
+    chatWidth * 0.8 < 450 ? chatWidth * 0.8 + 'px' : '450px'};
   display: flex;
   flex-direction: column;
   row-gap: 0.2rem;

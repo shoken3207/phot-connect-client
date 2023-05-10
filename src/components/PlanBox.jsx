@@ -766,6 +766,7 @@ const PlanBox = ({
           withActionButton
           selectUsers={selectUsers}
           invitees={invitees}
+          blackUsers={blackUsers}
           participants={participants}
         />
         <DialogActions>

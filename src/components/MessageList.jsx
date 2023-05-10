@@ -40,7 +40,6 @@ const MessageBox = memo(
     useEffect(() => {
       chatContainerRef.current.addEventListener('scroll', handleScroll);
     }, []);
-
     return (
       <SMessageList ref={chatContainerRef}>
         {talks.map((talkData, index) => (
@@ -74,6 +73,7 @@ const MessageBox = memo(
                 fetchTalks={fetchTalks}
                 talks={talks}
                 setTalks={setTalks}
+                chatContainerRef={chatContainerRef}
                 {...(isLastMessage(index) && { ref: lastMessageRef })}
                 {...(isFunc(index) && { ref: topMessageRef })}
               />
@@ -93,6 +93,7 @@ const MessageBox = memo(
                 fetchTalks={fetchTalks}
                 talks={talks}
                 setTalks={setTalks}
+                chatContainerRef={chatContainerRef}
                 {...(isLastMessage(index) && { ref: lastMessageRef })}
                 {...(isFunc(index) && { ref: topMessageRef })}
               />

@@ -7,7 +7,6 @@ import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import LoadingProgress from './LoadingProgress';
-import styled from 'styled-components';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />;
@@ -20,6 +19,7 @@ export default function CommonFullScreenDialog({
   title,
   icon,
 }) {
+  const appBarRef = React.useRef(null);
   const handleClose = () => {
     setIsOpenFullScreenDialog(false);
     sessionStorage.removeItem('isOpenFullScreenDialog');
@@ -32,8 +32,9 @@ export default function CommonFullScreenDialog({
         open={isOpenFullScreenDialog}
         onClose={handleClose}
         TransitionComponent={Transition}
+        style={{ paddingTop: appBarRef.current?.clientHeight }}
       >
-        <AppBar sx={{ position: 'fixed' }}>
+        <AppBar ref={appBarRef} sx={{ position: 'fixed' }}>
           <Toolbar>
             {icon}
             <Typography sx={{ ml: 2, flex: 1 }} variant='h6' component='div'>
@@ -49,13 +50,9 @@ export default function CommonFullScreenDialog({
             </IconButton>
           </Toolbar>
         </AppBar>
-        <SDiv>{children}</SDiv>
+        {children}
         <LoadingProgress />
       </Dialog>
     </div>
   );
 }
-
-const SDiv = styled.div`
-  margin-top: 4.2rem;
-`;

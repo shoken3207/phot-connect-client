@@ -198,7 +198,7 @@ const EditPlan = memo(() => {
         <TextField
           variant='standard'
           id='chipText'
-          label='チップテキストを入力'
+          label='タグを入力'
           fullWidth
           onChange={(e) => handleChange(e, setChipText)}
           value={chipText}
