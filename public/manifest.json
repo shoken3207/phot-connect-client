@@ -1,0 +1,32 @@
+{
+    "theme_color": "#f69435",
+    "background_color": "#f69435",
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "/auth",
+    "name": "photo-connect",
+    "short_name": "\u30d5\u30a9\u30c8\u30b3\u30cd",
+    "description": "\u5199\u771f\u8da3\u5473\u306e\u4eba\u3092\u7e4b\u3050\u30a2\u30d7\u30ea\u3067\u3059",
+    "icons": [
+        {
+            "src": "/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-256x256.png",
+            "sizes": "256x256",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
