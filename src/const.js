@@ -66,8 +66,6 @@ export const prefectureArray = [
 
 export const uploadLimitFileSize = 1024 * 1024 * 1.4;
 
-export const definedLimit = 40;
-
 export const REACTIONS = [
   { label: 'favorite', node: <FavoriteIcon fontSize='large' color='error' /> },
   { label: 'good', node: <ThumbUpIcon fontSize='large' color='primary' /> },
@@ -135,8 +133,8 @@ export const NO_IMAGE_PATH = '/images/noImage.jpg';
 export const CLOSED_PLAN_IMAGE_PATH = '/images/planClose.png';
 export const NO_AVATAR_IMAGE_PATH = '/images/noAvatar.png';
 
-export const MAX_LOAD_PLAN_COUNT = 8;
-export const MAX_LOAD_TALK_COUNT = 15;
+export const MAX_LOAD_PLAN_COUNT = 12;
+export const MAX_LOAD_TALK_COUNT = 22;
 export const MAX_DISP_REACTION_AVATAR_COUNT = 3;
 export const MAX_LOAD_NOTIFICATION_COUNT = 20;
 export const LOADING_TIME = 100;

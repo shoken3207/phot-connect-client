@@ -13,7 +13,6 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_API_KEY_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
