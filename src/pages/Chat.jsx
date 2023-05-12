@@ -5,6 +5,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/main';
 import { useRouter } from 'next/router';
 import useFetchData from '../hooks/useFetchData';
+import Head from 'next/head';
 const Chat = memo(() => {
   const { fetchTalkRoomsFunc } = useFetchData();
   const router = useRouter();
@@ -39,6 +40,9 @@ const Chat = memo(() => {
   }, [userData]);
   return (
     <div>
+      <Head>
+        <title>chat</title>
+      </Head>
       <CommonList
         listData={talkRoomListData}
         setListData={setTalkRoomListData}

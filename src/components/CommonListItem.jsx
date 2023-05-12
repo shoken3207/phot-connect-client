@@ -151,14 +151,21 @@ const PersonListItem = memo(
                   <Typography noWrap>{primaryText || 'unknown'}</Typography>
                 }
                 secondary={
-                  <Typography variant='body2' noWrap>
-                    {secondaryText.split('\n').map((line, index) => (
-                      <React.Fragment key={index}>
-                        {line}
-                        <br />
-                      </React.Fragment>
-                    ))}
-                  </Typography>
+                  typeof secondaryText === String ? (
+                    <Typography variant='body2' noWrap>
+                      {secondaryText.split('\n').map((line, index) => (
+                        <React.Fragment key={index}>
+                          {line}
+                          <br />
+                        </React.Fragment>
+                      ))}
+                    </Typography>
+                  ) : (
+                    <Typography variant='body2' noWrap>
+                      {' '}
+                      {secondaryText}
+                    </Typography>
+                  )
                 }
               />
             )}

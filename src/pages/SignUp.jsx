@@ -6,6 +6,7 @@ import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
 import { useSnackbarInfo } from '../provider/SnackbarInfoProvider';
 import { useSnackbarShowFlg } from '../provider/SnackbarShowFlgProvider';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Head from 'next/head';
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
@@ -50,6 +51,9 @@ const SignUp = () => {
   };
   return (
     <SWrap>
+      <Head>
+        <title>signUp</title>
+      </Head>
       <SBox onSubmit={(e) => signUp(e)}>
         <div>
           <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>

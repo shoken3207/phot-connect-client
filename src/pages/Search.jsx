@@ -17,6 +17,7 @@ import { useRouter } from 'next/router';
 import { MAX_LOAD_PLAN_COUNT } from '../const';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/main';
+import Head from 'next/head';
 
 const Search = () => {
   const [user] = useAuthState(auth);
@@ -130,6 +131,9 @@ const Search = () => {
   };
   return (
     <SSearch>
+      <Head>
+        <title>search</title>
+      </Head>
       <FormControl>
         <FormLabel>検索したいものを選んでください。</FormLabel>
         <RadioGroup

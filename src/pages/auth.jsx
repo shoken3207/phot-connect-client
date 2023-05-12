@@ -10,6 +10,7 @@ import useUserFunc from '../hooks/useUserFunc';
 import { Button } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import EmailIcon from '@mui/icons-material/Email';
+import Head from 'next/head';
 
 const Home = () => {
   const { setUserData } = useUserData();
@@ -47,6 +48,9 @@ const Home = () => {
   return (
     <div className={styles.container}>
       <SContainer>
+        <Head>
+          <title>auth</title>
+        </Head>
         <SLoginButtonGroup>
           <Button
             style={{ textTransform: 'none' }}

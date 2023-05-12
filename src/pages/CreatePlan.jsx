@@ -19,6 +19,7 @@ import { useSnackbarInfo } from '../provider/SnackbarInfoProvider';
 import SelectPrefecture from '../components/SelectPrefecture';
 import usePlanFunc from '../hooks/usePlanFunc';
 import { convertToSaveDate } from '../utils/dateUtils';
+import Head from 'next/head';
 const CreatePlan = () => {
   const { userData } = useUserData();
   const router = useRouter();
@@ -114,6 +115,9 @@ const CreatePlan = () => {
   };
   return (
     <SCreatePlan>
+      <Head>
+        <title>createPlan</title>
+      </Head>
       <h2>プロフィール情報を編集</h2>
       <TextField
         id='title'

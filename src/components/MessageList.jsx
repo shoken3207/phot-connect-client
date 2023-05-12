@@ -117,7 +117,6 @@ const SMessageList = styled.div`
   flex-direction: column;
   row-gap: 0.9rem;
   padding: 0.2rem;
-  /* border: 1px solid black; */
   &::-webkit-scrollbar {
     display: none;
   }

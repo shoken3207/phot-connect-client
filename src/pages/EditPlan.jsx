@@ -21,6 +21,7 @@ import useFetchData from '../hooks/useFetchData';
 import usePlanFunc from '../hooks/usePlanFunc';
 import { useUserData } from '../provider/UserDataProvider';
 import { convertToSaveDate } from '../utils/dateUtils';
+import Head from 'next/head';
 
 const EditPlan = memo(() => {
   const router = useRouter();
@@ -136,6 +137,9 @@ const EditPlan = memo(() => {
   };
   return (
     <SEditPlan>
+      <Head>
+        <title>editPlan</title>
+      </Head>
       <h2>プラン情報を編集</h2>
       <TextField
         variant='standard'

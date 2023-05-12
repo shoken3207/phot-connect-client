@@ -21,6 +21,7 @@ import { auth } from '../firebase/main';
 import SelectPrefecture from '../components/SelectPrefecture';
 import useUserFunc from '../hooks/useUserFunc';
 import useFetchData from '../hooks/useFetchData';
+import Head from 'next/head';
 
 const EditProfile = memo(() => {
   const router = useRouter();
@@ -95,6 +96,9 @@ const EditProfile = memo(() => {
   };
   return (
     <SEditProfile>
+      <Head>
+        <title>editProfile</title>
+      </Head>
       <h2>プロフィール情報を編集</h2>
       <TextField
         variant='standard'

@@ -82,7 +82,7 @@ const Profile = () => {
   return (
     <SProfile>
       <Head>
-        <title>Profile</title>
+        <title>profile</title>
       </Head>
       <SProfileHeader
         ref={profileHeaderRef}

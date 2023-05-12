@@ -8,6 +8,7 @@ import { useSnackbarShowFlg } from '../provider/SnackbarShowFlgProvider';
 import { useUserData } from '../provider/UserDataProvider';
 import useUserFunc from '../hooks/useUserFunc';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
+import Head from 'next/head';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -52,6 +53,9 @@ const SignIn = () => {
   };
   return (
     <SWrap>
+      <Head>
+        <title>signIn</title>
+      </Head>
       <SBox onSubmit={(e) => signIn(e)}>
         <div>
           <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>

@@ -10,6 +10,7 @@ import useChatFunc from '../../hooks/useChatFunc';
 import { MAX_LOAD_TALK_COUNT } from '../../const';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../../firebase/main';
+import Head from 'next/head';
 
 const TalkRoom = memo(() => {
   const router = useRouter();
@@ -85,6 +86,9 @@ const TalkRoom = memo(() => {
 
   return (
     <SChat>
+      <Head>
+        <title>talkRoom</title>
+      </Head>
       <MessageList
         talks={talks}
         setTalksLoadCount={setTalksLoadCount}
@@ -107,5 +111,8 @@ export default TalkRoom;
 const SChat = styled.div`
   max-width: 800px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `;
 TalkRoom.displayName = 'TalkRoom';

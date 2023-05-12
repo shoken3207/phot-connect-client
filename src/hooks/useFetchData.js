@@ -79,6 +79,7 @@ const useFetchData = () => {
   const fetchTalkRoomsFunc = useCallback(
     async (userId, start = 0, limit = 10) => {
       try {
+        setIsLoading(true);
         const response = await axios.get(
           `${BASE_API_URL}/chat/talkRooms/${userId}/${start}/${limit}`
         );
@@ -92,6 +93,10 @@ const useFetchData = () => {
         setSnackbarInfo({ text: response.data.message, severity: 'warning' });
         setSnackbarIsShow(true);
         return response.data.talkRooms;
+      } finally {
+        setTimeout(() => {
+          setIsLoading(false);
+        }, LOADING_TIME);
       }
     },
     []

@@ -11,6 +11,7 @@ import CommonFullScreenDialog from '../components/CommonFullScreenDialog';
 import NotificationList from '../components/NotificationList';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import Head from 'next/head';
 
 const Home = () => {
   const router = useRouter();
@@ -74,6 +75,9 @@ const Home = () => {
 
   return (
     <div>
+      <Head>
+        <title>home</title>
+      </Head>
       <PlanList
         planList={plans}
         setPlans={setPlans}
