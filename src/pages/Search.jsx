@@ -130,75 +130,79 @@ const Search = () => {
     }
   };
   return (
-    <SSearch>
+    <SContainer>
       <Head>
         <title>search</title>
       </Head>
-      <FormControl>
-        <FormLabel>検索したいものを選んでください。</FormLabel>
-        <RadioGroup
-          value={searchCategory}
-          onChange={(e, value) => handleChange(e, setSearchCategory, value)}
-        >
-          <FormControlLabel
-            value='users'
-            control={<Radio />}
-            label='名前からユーザ'
-          />
-          <FormControlLabel
-            value='prefecture'
-            control={<Radio />}
-            label='都道府県からプラン'
-          />
-          <FormControlLabel
-            value='tag'
-            control={<Radio />}
-            label='タグからプラン'
-          />
-        </RadioGroup>
-      </FormControl>
-      <form onSubmit={(e) => search(e)}>
-        {searchCategory === 'users' ? (
-          <TextField
-            id='username'
-            variant='standard'
-            label='ユーザーネームを入力'
-            value={username}
-            onChange={(e) => handleChange(e, setUsername)}
-            autoFocus
-            fullWidth
-          />
-        ) : searchCategory === 'prefecture' ? (
-          <SelectPrefecture
-            prefecture={prefecture}
-            setPrefecture={setPrefecture}
-            autoFocus
-          />
-        ) : (
-          <TextField
-            id='tag'
-            variant='standard'
-            label='検索したいワードを入力'
-            value={tag}
-            onChange={(e) => handleChange(e, setTag)}
-            autoFocus
-            fullWidth
-          ></TextField>
-        )}
-      </form>
+      <SSearch>
+        <FormControl>
+          <FormLabel>検索したいものを選んでください。</FormLabel>
+          <RadioGroup
+            value={searchCategory}
+            onChange={(e, value) => handleChange(e, setSearchCategory, value)}
+          >
+            <FormControlLabel
+              value='users'
+              control={<Radio />}
+              label='名前からユーザ'
+            />
+            <FormControlLabel
+              value='prefecture'
+              control={<Radio />}
+              label='都道府県からプラン'
+            />
+            <FormControlLabel
+              value='tag'
+              control={<Radio />}
+              label='タグからプラン'
+            />
+          </RadioGroup>
+        </FormControl>
+        <form onSubmit={(e) => search(e)}>
+          {searchCategory === 'users' ? (
+            <TextField
+              id='username'
+              variant='standard'
+              label='ユーザーネームを入力'
+              value={username}
+              onChange={(e) => handleChange(e, setUsername)}
+              autoFocus
+              fullWidth
+            />
+          ) : searchCategory === 'prefecture' ? (
+            <SelectPrefecture
+              prefecture={prefecture}
+              setPrefecture={setPrefecture}
+              autoFocus
+            />
+          ) : (
+            <TextField
+              id='tag'
+              variant='standard'
+              label='検索したいワードを入力'
+              value={tag}
+              onChange={(e) => handleChange(e, setTag)}
+              autoFocus
+              fullWidth
+            ></TextField>
+          )}
+        </form>
 
-      <Button fullWidth variant='contained' onClick={(e) => search(e)}>
-        検索
-      </Button>
+        <Button fullWidth variant='contained' onClick={(e) => search(e)}>
+          検索
+        </Button>
+      </SSearch>
 
       {searchCategory === 'users' ? (
-        <CommonList
-          pagePath='Profile'
-          listData={users}
-          onClick={(e, userId, friendId) => addFriend(e, userId, friendId)}
-          friendAdd
-          withActionButton
-        />
+        <SUserContainer>
+          <CommonList
+            pagePath='Profile'
+            listData={users}
+            onClick={(e, userId, friendId) => addFriend(e, userId, friendId)}
+            friendAdd
+            withActionButton
+          />
+        </SUserContainer>
       ) : searchCategory === 'prefecture' ? (
         <PlanList
           planList={plansByPrefecture}
@@ -216,17 +220,30 @@ const Search = () => {
           setCurrentPageIndex={setCurrentPageIndexByTag}
         />
       )}
-    </SSearch>
+    </SContainer>
   );
 };
 
 export default Search;
 
-const SSearch = styled.div`
+const SContainer = styled.div`
   display: flex;
   flex-direction: column;
   row-gap: 1.5rem;
+  margin-top: 4rem;
+`;
+
+const SUserContainer = styled.div`
   width: 85%;
   max-width: 550px;
-  margin: 5rem auto 0 auto;
+  margin: 0 auto;
+`;
+
+const SSearch = styled.div`
+  width: 85%;
+  max-width: 550px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  row-gap: 1.5rem;
 `;

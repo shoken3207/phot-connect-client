@@ -10,6 +10,7 @@ const GridList = styled.div`
   gap: 1rem;
   width: 95%;
   margin: 0 auto;
+  margin-bottom: 2.5rem;
 `;
 
 const PlanList = memo(

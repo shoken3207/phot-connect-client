@@ -250,13 +250,13 @@ const SEditPlan = styled.div`
     text-align: center;
   }
   width: 90%;
-  height: 100vh;
   max-width: 450px;
   padding: 2rem 0.5rem;
   display: flex;
   flex-direction: column;
   row-gap: 1.6rem;
   margin: 0 auto;
+  margin-bottom: 1rem;
 `;
 
 const SAddChipText = styled.form`
