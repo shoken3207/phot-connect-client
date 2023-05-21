@@ -118,7 +118,7 @@ const CreatePlan = () => {
       <Head>
         <title>createPlan</title>
       </Head>
-      <h2>プロフィール情報を編集</h2>
+      <h2>プランを作成</h2>
       <TextField
         id='title'
         label='タイトルを入力'
