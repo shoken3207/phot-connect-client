@@ -141,9 +141,9 @@ const PersonList = memo(
 );
 
 const SCommonList = styled.div`
-  /* max-height: 88vh;
+  max-height: 88vh;
   height: auto;
-  overflow-y: scroll; */
+  overflow-y: scroll;
 `;
 
 export default PersonList;
