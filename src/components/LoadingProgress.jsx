@@ -13,7 +13,13 @@ const LoadingProgress = () => {
           sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
           open={isLoading}
         >
-          <CircularProgress style={{ height: 50, width: 50 }} color='primary' />
+          <SProgressContaner>
+            <CircularProgress
+              style={{ height: 70, width: 70 }}
+              color='primary'
+            />
+            <h2>Loading・・・</h2>
+          </SProgressContaner>
         </Backdrop>
       )}
     </>
@@ -21,3 +27,16 @@ const LoadingProgress = () => {
 };
 
 export default LoadingProgress;
+
+const SProgressContaner = styled.div`
+  display: flex;
+  flex-direction: column;
+  row-gap: 1.8rem;
+  align-items: center;
+
+  > h2 {
+    font-size: 1.4rem;
+    color: white;
+    text-align: center;
+  }
+`;

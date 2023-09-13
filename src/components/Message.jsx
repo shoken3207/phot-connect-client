@@ -80,11 +80,12 @@ const Message = memo(
           });
         }
         setMenuList(menuArray);
-        setReactorsArray(talks[talkIndex].reactors);
+        const result = convertReactors(talks[talkIndex].reactors);
+        setReactorsArray(result);
       }, [talks]);
 
-      const dispReactors = () => {
-        const convertReactors = reactors.map((x) => {
+      const convertReactors = (reactors) => {
+        const convertResult = reactors.map((x) => {
           return {
             primaryText: x.username || 'unknown',
             secondaryText: (
@@ -103,7 +104,12 @@ const Message = memo(
             id: x._id,
           };
         });
-        setReactorsArray([...convertReactors]);
+        return convertResult;
+      };
+
+      const dispReactors = () => {
+        const result = convertReactors(reactors);
+        setReactorsArray([...result]);
         setReactorsListIsOpen(true);
       };
 
