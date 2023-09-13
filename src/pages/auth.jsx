@@ -70,7 +70,9 @@ const Home = () => {
               <img src='/images/google_button.png' alt='' />
             </SGoogleButton>
             <SLoginButton onClick={() => router.push('/SignIn')}>
-              <EmailIcon sx={{ color: 'white' }} />
+              <div>
+                <EmailIcon sx={{ color: '#00c6b8' }} />
+              </div>
               <span>Sign in with Email</span>
             </SLoginButton>
           </SButtonGroup>
@@ -97,7 +99,7 @@ const SContainer = styled.div`
 const SBox = styled.div`
   width: 85%;
   max-width: 800px;
-  padding: 1rem 1.5rem;
+  padding: 1.2rem 1.5rem;
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.9);
   border: 3px solid #c2cee1;
@@ -144,7 +146,7 @@ const SLoginButton = styled.div`
   align-items: center;
   justify-content: flex-start;
   column-gap: 0.8rem;
-  padding: 0.8rem 0.6rem;
+  padding: 0.15rem;
   background-color: #00c6b8;
   box-shadow: 4px 4px 14px -6px #777777;
   font-size: 0.9rem;
@@ -152,6 +154,15 @@ const SLoginButton = styled.div`
   &:hover {
     opacity: 0.7;
   }
+  > div {
+    width: 20%;
+    aspect-ratio: 1 / 1;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
   > span {
     font-weight: bold;
     color: white;
