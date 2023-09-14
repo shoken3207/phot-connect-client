@@ -99,10 +99,9 @@ const SContainer = styled.div`
 const SBox = styled.div`
   width: 85%;
   max-width: 800px;
-  padding: 1.2rem 1.5rem;
+  padding: 1.4rem 1.5rem;
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.9);
-  border: 3px solid #c2cee1;
   display: flex;
   flex-direction: column;
   row-gap: 0.6rem;
@@ -140,12 +139,12 @@ const SButtonGroup = styled.div`
 
 const SLoginButton = styled.div`
   width: 70%;
-  max-width: 270px;
+  max-width: 240px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  column-gap: 0.8rem;
+  column-gap: 0.6rem;
   padding: 0.15rem;
   background-color: #00c6b8;
   box-shadow: 4px 4px 14px -6px #777777;
@@ -171,7 +170,7 @@ const SLoginButton = styled.div`
 
 const SGoogleButton = styled.div`
   width: 70%;
-  max-width: 270px;
+  max-width: 240px;
   cursor: pointer;
   transition: all 0.3s;
   &:hover {
