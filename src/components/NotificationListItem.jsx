@@ -131,11 +131,7 @@ const NotificationListItem = ({
           <img src={contentImage} alt='' />
         </SContentImage>
       </SNotificationListItem>
-      <CommonDialog
-        dialogTitle='通知プラン'
-        isOpen={dialogIsOpen}
-        setIsOpen={setDialogIsOpen}
-      >
+      <CommonDialog isOpen={dialogIsOpen} setIsOpen={setDialogIsOpen}>
         <PlanList planList={plans} setPlans={setPlans} />
       </CommonDialog>
     </>

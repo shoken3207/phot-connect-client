@@ -11,6 +11,7 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import PersonIcon from '@mui/icons-material/Person';
 import GroupIcon from '@mui/icons-material/Group';
 import LogoutIcon from '@mui/icons-material/Logout';
 import styled from 'styled-components';
@@ -20,7 +21,7 @@ import CommonMenu from './CommonMenu';
 import { auth } from '../firebase/main';
 import PlanList from './PlanList';
 import useFetchData from '../hooks/useFetchData';
-import { MAX_LOAD_PLAN_COUNT } from '../const';
+import { FULL_SCREEN_POPUP_TYPE, MAX_LOAD_PLAN_COUNT } from '../const';
 import { useIsOpenFullScreenDialog } from '../provider/IsOpenFullScreenDialogProvider';
 import CommonFullScreenDialog from './CommonFullScreenDialog';
 const TopBar = memo(({ setIsOpen }) => {
@@ -50,6 +51,11 @@ const TopBar = memo(({ setIsOpen }) => {
         text: 'プロフィール画面',
         icon: <AccountCircleIcon />,
         onClickFunc: (e) => transitionProfilePage(e),
+      },
+      {
+        text: 'プロフィール編集',
+        icon: <PersonIcon />,
+        onClickFunc: (e) => router.push('/EditProfile'),
       },
       {
         text: 'いいねしたプラン',
@@ -86,6 +92,13 @@ const TopBar = memo(({ setIsOpen }) => {
   useEffect(() => {
     setTopBarHeight(topBarRef.current?.clientHeight);
   }, [router.pathname]);
+  useEffect(() => {
+    if (userData._id && fullScreenDialogTitle === '「いいね！」したプラン') {
+      fetchLikedPlan();
+    } else if (userData._id && fullScreenDialogTitle === '参加したプラン') {
+      fetchParticipatedPlans();
+    }
+  }, [userData, currentPageIndex]);
 
   const transitionProfilePage = (e) => {
     e.preventDefault();
@@ -101,34 +114,43 @@ const TopBar = memo(({ setIsOpen }) => {
     }
   };
 
-  const dispLikedPlan = async (e) => {
-    e.preventDefault();
+  const fetchLikedPlan = async () => {
     const { plans: likedPlans, planCount } = await fetchLikedPlansFunc(
       userData._id,
       MAX_LOAD_PLAN_COUNT * (currentPageIndex - 1),
       MAX_LOAD_PLAN_COUNT
     );
-    if (likedPlans.length > 0) {
-      setFullScreenDialogTitle('「いいね！」したプラン');
-      setPlans(likedPlans);
-      setPlanCountVal(planCount);
-      setDialogIsOpen(true);
-    }
+    setPlans(likedPlans);
+    setPlanCountVal(planCount);
+    return { likedPlans };
   };
-
-  const dispParticipationedPlan = async (e) => {
-    e.preventDefault();
+  const fetchParticipatedPlans = async () => {
     const { plans: participatedPlans, planCount } =
       await fetchParticipatedPlansFunc(
         userData._id,
         MAX_LOAD_PLAN_COUNT * (currentPageIndex - 1),
         MAX_LOAD_PLAN_COUNT
       );
+    setPlans(participatedPlans);
+    setPlanCountVal(planCount);
+    return { participatedPlans };
+  };
+
+  const dispLikedPlan = async (e) => {
+    e.preventDefault();
+    const { likedPlans } = await fetchLikedPlan();
+    if (likedPlans.length > 0) {
+      setFullScreenDialogTitle('「いいね！」したプラン');
+      setIsOpenFullScreenDialog(FULL_SCREEN_POPUP_TYPE.LIKED);
+    }
+  };
+
+  const dispParticipationedPlan = async (e) => {
+    e.preventDefault();
+    const { participatedPlans } = await fetchParticipatedPlans();
     if (participatedPlans.length > 0) {
       setFullScreenDialogTitle('参加したプラン');
-      setPlans(participatedPlans);
-      setPlanCountVal(planCount);
-      setDialogIsOpen(true);
+      setIsOpenFullScreenDialog(FULL_SCREEN_POPUP_TYPE.PARTICIPATED);
     }
   };
 
@@ -186,7 +208,13 @@ const TopBar = memo(({ setIsOpen }) => {
                 </Typography>
                 {basePath === 'Home' && (
                   <Tooltip title='通知'>
-                    <IconButton onClick={() => setIsOpenFullScreenDialog(true)}>
+                    <IconButton
+                      onClick={() =>
+                        setIsOpenFullScreenDialog(
+                          FULL_SCREEN_POPUP_TYPE.NOTIFICATION
+                        )
+                      }
+                    >
                       {notificationCount > 0 ? (
                         <Badge
                           badgeContent={notificationCount}
@@ -213,8 +241,11 @@ const TopBar = memo(({ setIsOpen }) => {
         </Toolbar>
 
         <CommonFullScreenDialog
-          isOpenFullScreenDialog={dialogIsOpen}
-          setIsOpenFullScreenDialog={setDialogIsOpen}
+          isOpenFullScreenDialog={
+            isOpenFullScreenDialog === FULL_SCREEN_POPUP_TYPE.LIKED ||
+            isOpenFullScreenDialog === FULL_SCREEN_POPUP_TYPE.PARTICIPATED
+          }
+          setIsOpenFullScreenDialog={setIsOpenFullScreenDialog}
           title={fullScreenDialogTitle}
         >
           <PlanList

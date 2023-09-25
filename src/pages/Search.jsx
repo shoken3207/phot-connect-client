@@ -93,6 +93,25 @@ const Search = () => {
     }
   };
 
+  const fetchPlansByPrefecture = async () => {
+    const { plans, planCount } = await fetchPlansByPrefectureFunc(
+      prefecture,
+      MAX_LOAD_PLAN_COUNT * (currentPageIndexByPrefecture - 1),
+      MAX_LOAD_PLAN_COUNT
+    );
+    setPlansByPrefecture(plans);
+    setPlanCountValByPrefecture(planCount);
+  };
+  const fetchPlansByTag = async () => {
+    const { plans, planCount } = await fetchPlansByTagFunc(
+      tag,
+      MAX_LOAD_PLAN_COUNT * (currentPageIndexByTag - 1),
+      MAX_LOAD_PLAN_COUNT
+    );
+    setPlansByTag(plans);
+    setPlanCountValByTag(planCount);
+  };
+
   const search = async (e) => {
     e && e.preventDefault();
     if (searchCategory === 'users') {
@@ -111,22 +130,10 @@ const Search = () => {
       setUsers(userArray);
     } else if (searchCategory === 'prefecture') {
       if (prefecture === '') return;
-      const { plans, planCount } = await fetchPlansByPrefectureFunc(
-        prefecture,
-        MAX_LOAD_PLAN_COUNT * (currentPageIndexByPrefecture - 1),
-        MAX_LOAD_PLAN_COUNT
-      );
-      setPlansByPrefecture(plans);
-      setPlanCountValByPrefecture(planCount);
+      await fetchPlansByPrefecture();
     } else if (searchCategory === 'tag') {
       if (tag === '') return;
-      const { plans, planCount } = await fetchPlansByTagFunc(
-        tag,
-        MAX_LOAD_PLAN_COUNT * (currentPageIndexByTag - 1),
-        MAX_LOAD_PLAN_COUNT
-      );
-      setPlansByTag(plans);
-      setPlanCountValByTag(planCount);
+      await fetchPlansByTag();
     }
   };
   return (
@@ -230,7 +237,7 @@ const SContainer = styled.div`
   display: flex;
   flex-direction: column;
   row-gap: 1.5rem;
-  margin-top: 4rem;
+  margin-top: 2rem;
 `;
 
 const SUserContainer = styled.div`
