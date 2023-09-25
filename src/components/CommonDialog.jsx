@@ -26,7 +26,7 @@ const CommonDialog = ({
       onClose={() => dialogCloseFunc()}
       open={isOpen}
     >
-      <DialogTitle>{dialogTitle}</DialogTitle>
+      {!!dialogTitle && <DialogTitle>{dialogTitle}</DialogTitle>}
       {children}
     </Dialog>
   );

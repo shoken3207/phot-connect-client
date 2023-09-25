@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react';
 import PlanList from '../components/PlanList';
 import { useUserData } from '../provider/UserDataProvider';
 import useFetchData from '../hooks/useFetchData';
-import { MAX_LOAD_NOTIFICATION_COUNT, MAX_LOAD_PLAN_COUNT } from '../const';
+import {
+  FULL_SCREEN_POPUP_TYPE,
+  MAX_LOAD_NOTIFICATION_COUNT,
+  MAX_LOAD_PLAN_COUNT,
+} from '../const';
 import { useRouter } from 'next/router';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/main';
@@ -86,7 +90,9 @@ const Home = () => {
         setCurrentPageIndex={setCurrentPageIndex}
       />
       <CommonFullScreenDialog
-        isOpenFullScreenDialog={isOpenFullScreenDialog}
+        isOpenFullScreenDialog={
+          isOpenFullScreenDialog === FULL_SCREEN_POPUP_TYPE.NOTIFICATION
+        }
         setIsOpenFullScreenDialog={setIsOpenFullScreenDialog}
         title='通知'
         icon={<NotificationsIcon />}

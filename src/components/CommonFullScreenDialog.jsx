@@ -19,9 +19,8 @@ export default function CommonFullScreenDialog({
   title,
   icon,
 }) {
-  const appBarRef = React.useRef(null);
   const handleClose = () => {
-    setIsOpenFullScreenDialog(false);
+    setIsOpenFullScreenDialog(null);
     sessionStorage.removeItem('isOpenFullScreenDialog');
   };
 
@@ -32,9 +31,8 @@ export default function CommonFullScreenDialog({
         open={isOpenFullScreenDialog}
         onClose={handleClose}
         TransitionComponent={Transition}
-        style={{ paddingTop: appBarRef.current?.clientHeight }}
       >
-        <AppBar ref={appBarRef} sx={{ position: 'fixed' }}>
+        <AppBar sx={{ position: 'fixed' }}>
           <Toolbar>
             {icon}
             <Typography sx={{ ml: 2, flex: 1 }} variant='h6' component='div'>
@@ -50,7 +48,7 @@ export default function CommonFullScreenDialog({
             </IconButton>
           </Toolbar>
         </AppBar>
-        {children}
+        <div style={{ marginTop: '4rem' }}>{children}</div>
         <LoadingProgress />
       </Dialog>
     </div>

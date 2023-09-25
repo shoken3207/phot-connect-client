@@ -6,6 +6,7 @@ import { auth } from '../firebase/main';
 import { useRouter } from 'next/router';
 import useFetchData from '../hooks/useFetchData';
 import Head from 'next/head';
+import styled from 'styled-components';
 const Chat = memo(() => {
   const { fetchTalkRoomsFunc } = useFetchData();
   const router = useRouter();
@@ -43,15 +44,25 @@ const Chat = memo(() => {
       <Head>
         <title>chat</title>
       </Head>
-      <CommonList
-        listData={talkRoomListData}
-        setListData={setTalkRoomListData}
-        pagePath='/TalkRoom'
-        chat
-      />
+      <SContainer>
+        <CommonList
+          listData={talkRoomListData}
+          setListData={setTalkRoomListData}
+          pagePath='/TalkRoom'
+          chat
+        />
+      </SContainer>
     </div>
   );
 });
 
 export default Chat;
 Chat.displayName = 'Chat';
+
+const SContainer = styled.div`
+  width: 100%;
+  margin: 0 auto;
+  max-width: 800px;
+  display: flex;
+  justify-content: center;
+`;
