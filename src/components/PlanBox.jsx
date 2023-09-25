@@ -573,7 +573,7 @@ const PlanBox = ({
             </SwiperSlide>
           ))}
         </SwiperBox>
-        <SPlanBoxFooter>
+        <SPlanBoxFooter isExpanded={isExpanded}>
           <div>
             <p>
               <span>撮影場所:</span>
@@ -936,7 +936,7 @@ const SPlanBoxFooter = styled.div`
       display: flex;
       flex-direction: column;
       row-gap: 0.2rem;
-      width: 70%;
+      width: 65%;
 
       > p {
         display: flex;
@@ -976,7 +976,7 @@ const SPlanBoxFooter = styled.div`
         &:nth-of-type(2) {
           margin-right: -0.4rem;
           transform: ${(props) =>
-            props.isExpanded ? 'rotate(180deg)' : 'none'};
+            props.isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'};
           transition: transform 0.3s;
         }
       }

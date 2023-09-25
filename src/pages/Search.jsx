@@ -74,6 +74,9 @@ const Search = () => {
     search();
     setIsUpdateQuery(false);
   }, [isUpdateQuery, currentPageIndexByPrefecture, currentPageIndexByTag]);
+  useEffect(() => {
+    search();
+  }, [currentPageIndexByPrefecture, currentPageIndexByTag]);
 
   const addFriend = async (e, friendId) => {
     e.preventDefault();
