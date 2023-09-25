@@ -137,4 +137,10 @@ export const MAX_LOAD_PLAN_COUNT = 12;
 export const MAX_LOAD_TALK_COUNT = 22;
 export const MAX_DISP_REACTION_AVATAR_COUNT = 3;
 export const MAX_LOAD_NOTIFICATION_COUNT = 20;
-export const LOADING_TIME = 100;
+export const LOADING_TIME = 0;
+
+export const FULL_SCREEN_POPUP_TYPE = {
+  LIKED: 1,
+  PARTICIPATED: 2,
+  NOTIFICATION: 3,
+};

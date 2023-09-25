@@ -8,26 +8,16 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import HomeIcon from '@mui/icons-material/Home';
 import EditIcon from '@mui/icons-material/Edit';
-import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import SearchIcon from '@mui/icons-material/Search';
-import LoginIcon from '@mui/icons-material/Login';
 import ChatIcon from '@mui/icons-material/Chat';
-import PersonIcon from '@mui/icons-material/Person';
 import LinkWrap from './LinkWrap';
 
 export default function MobileMenu({ isOpen, setIsOpen }) {
   const mobileMenuArray = [
     { text: 'ホーム', icon: <HomeIcon />, path: '/Home' },
-    {
-      text: 'プロフィール編集',
-      icon: <PersonIcon />,
-      path: '/EditProfile',
-    },
     { text: 'プランを作成', icon: <EditIcon />, path: '/CreatePlan' },
     { text: 'チャット', icon: <ChatIcon />, path: '/Chat' },
     { text: '検索', icon: <SearchIcon />, path: '/Search' },
-    { text: 'サインアップ', icon: <AppRegistrationIcon />, path: '/SignUp' },
-    { text: 'サインイン', icon: <LoginIcon />, path: '/SignIn' },
   ];
   const toggleDrawer = (open) => (event) => {
     if (

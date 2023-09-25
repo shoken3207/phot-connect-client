@@ -77,7 +77,7 @@ const useFetchData = () => {
   }, []);
 
   const fetchTalkRoomsFunc = useCallback(
-    async (userId, start = 0, limit = 10) => {
+    async (userId, start = 0, limit = 500) => {
       try {
         setIsLoading(true);
         const response = await axios.get(

@@ -5,9 +5,6 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import CommonButton from './CommonButton';
-import LinkWrap from './LinkWrap';
-import LoopIcon from '@mui/icons-material/Loop';
 import ChatIcon from '@mui/icons-material/Chat';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import GroupRemoveIcon from '@mui/icons-material/GroupRemove';
@@ -19,7 +16,13 @@ import { useUserData } from '../provider/UserDataProvider';
 import { useRouter } from 'next/router';
 import usePlanFunc from '../hooks/usePlanFunc';
 import { convertToSaveDate, getPlanDate } from '../utils/dateUtils';
-import { Button, DialogActions, IconButton, Tooltip } from '@mui/material';
+import {
+  Button,
+  Collapse,
+  DialogActions,
+  IconButton,
+  Tooltip,
+} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EmojiPeopleIcon from '@mui/icons-material/EmojiPeople';
 import TimerOffIcon from '@mui/icons-material/TimerOff';
@@ -41,6 +44,7 @@ import {
 } from '../utils/planUtils';
 import useFetchData from '../hooks/useFetchData';
 import { convertToDispDesc } from '../utils/commonUtils';
+import { useIsOpenFullScreenDialog } from '../provider/IsOpenFullScreenDialogProvider';
 
 const PlanBox = ({
   planId,
@@ -64,9 +68,6 @@ const PlanBox = ({
   invitees,
 }) => {
   const router = useRouter();
-  const [readMore, setReadMore] = useState(false);
-  const [isFront, setIsFront] = useState(true);
-  const [contentsHeight, setContentsHeight] = useState(null);
   const [likersListIsOpen, setLikersListIsOpen] = useState(false);
   const [participantsListIsOpen, setParticipantsIsOpen] = useState(false);
   const [selectFriendsListIsOpen, setSelectFriendsListIsOpen] = useState(false);
@@ -85,15 +86,16 @@ const PlanBox = ({
   const [deleteConfirmDialogIsOpen, setDeleteConfirmDialogIsOpen] =
     useState(false);
   const [personsArray, setPersonsArray] = useState([]);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [menuList, setMenuList] = useState([]);
   const [selectUserId, setSelectUserId] = useState(null);
   const [selectUsers, setSelectUsers] = useState([]);
-  const planBackContentsRef = useRef(null);
-  const planBackRef = useRef(null);
   const { userData } = useUserData();
   const { readTalksFunc } = useChatFunc();
   const { isLoading } = useIsLoadingFlg();
   const { fetchPlanFunc, fetchUserByIdFunc } = useFetchData();
+  const { isOpenFullScreenDialog, setIsOpenFullScreenDialog } =
+    useIsOpenFullScreenDialog();
   const {
     participationPlanFunc,
     leavePlanFunc,
@@ -132,7 +134,7 @@ const PlanBox = ({
     ];
 
     if (organizerId === userData._id) {
-      menuArray.push({
+      menuArray.unshift({
         text: 'プランを削除する',
         icon: <DeleteIcon />,
         onClickFunc: (e) => setDeleteConfirmDialogIsOpen(true),
@@ -205,14 +207,7 @@ const PlanBox = ({
     } else if (participantsAcceptListIsOpen) {
       setPersonsArray(convertList(blackUsers));
     }
-    setContentsHeight(planBackContentsRef.current.scrollHeight);
   }, [plans]);
-
-  useEffect(() => {
-    if (isFront) {
-      setReadMore(false);
-    }
-  }, [isFront]);
 
   const dispLikers = () => {
     const convertLikers = convertList(likers);
@@ -505,6 +500,10 @@ const PlanBox = ({
   const tagClick = (e, chipText) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('isOpenFullScreenDialog: ', isOpenFullScreenDialog);
+    if (isOpenFullScreenDialog) {
+      setIsOpenFullScreenDialog(null);
+    }
     router.push({
       pathname: '/Search',
       query: { searchCategory: 'tag', tag: chipText },
@@ -518,12 +517,6 @@ const PlanBox = ({
       pathname: '/Search',
       query: { searchCategory: 'prefecture', prefecture: prefecture },
     });
-  };
-
-  const readMoreContents = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setReadMore((prev) => !prev);
   };
 
   const transitionTalkRoom = async (e) => {
@@ -548,103 +541,176 @@ const PlanBox = ({
   };
 
   return (
-    <SPlanBox
-      isFront={isFront}
-      readMore={readMore}
-      contentsHeight={contentsHeight}
-      isLoading={isLoading}
-    >
-      <SFront>
-        <SFrontHeader>
+    <>
+      <SPlanBox isLoading={isLoading} isExpanded={isExpanded}>
+        <SPlanBoxHeader>
           <div>
-            <LinkWrap href={`/Profile/${organizerId}`}>
-              <div>
-                <img
-                  src={organizerIconImage || '/images/noAvatar.png'}
-                  alt=''
-                />
-              </div>
-            </LinkWrap>
+            <div onClick={() => router.push(`/Profile/${organizerId}`)}>
+              <img src={organizerIconImage || '/images/noAvatar.png'} alt='' />
+            </div>
             <div>
               <h3>{title}</h3>
               <Tooltip title='県で検索'>
-                <p onClick={(e) => prefectureClick(e, prefecture)}>
+                <h4 onClick={(e) => prefectureClick(e, prefecture)}>
                   {prefecture}
-                </p>
+                </h4>
               </Tooltip>
             </div>
           </div>
           <CommonMenu menuArray={menuList} />
-        </SFrontHeader>
-        <SFrontMedia>
-          <SwiperBox
-            grabCursor={true}
-            spaceBetween={0}
-            slidesPerView={1}
-            navigation={true}
-            pagination={{ clickable: true }}
-            modules={[Navigation, Pagination]}
-          >
-            {images.map((image) => (
-              <SwiperSlide key={image}>
-                <img style={{ width: '100%', height: '100%' }} src={image} />
-              </SwiperSlide>
-            ))}
-          </SwiperBox>
-        </SFrontMedia>
-        <SFrontFooter>
+        </SPlanBoxHeader>
+        <SwiperBox
+          grabCursor={true}
+          spaceBetween={0}
+          slidesPerView={1}
+          navigation={true}
+          pagination={{ clickable: true }}
+          modules={[Navigation, Pagination]}
+        >
+          {images.map((image) => (
+            <SwiperSlide key={image}>
+              <img style={{ width: '100%', height: '100%' }} src={image} />
+            </SwiperSlide>
+          ))}
+        </SwiperBox>
+        <SPlanBoxFooter isExpanded={isExpanded}>
           <div>
             <p>
-              <span>撮影場所:</span> <span>{place}</span>
+              <span>撮影場所:</span>
+              <span>{place}</span>
             </p>
             <p>
               <span>日時:</span> <span>{getPlanDate(date)}</span>
             </p>
-          </div>
-          <div>
-            <Tooltip title='詳細をみる'>
-              <IconButton
-                color='inherit'
-                onClick={() => setIsFront((prev) => !prev)}
-              >
-                <LoopIcon fontSize='medium' />
-              </IconButton>
-            </Tooltip>
-            {isLiked() ? (
-              <IconButton color='error' onClick={(e) => likePlan(e)}>
-                <FavoriteIcon fontSize='large' />
-              </IconButton>
+
+            {limit === 0 ? (
+              <p>
+                <span>参加者:</span>
+                <span>{`${participants.length}人`}</span>
+              </p>
+            ) : participants.length === limit ? (
+              <p>
+                <span>参加人数が上限に達しました</span>
+              </p>
             ) : (
-              <IconButton color='error' onClick={(e) => likePlan(e)}>
-                <FavoriteBorderIcon fontSize='large' />
-              </IconButton>
+              <p>
+                <span>{`募集人数は、残り${
+                  limit - participants.length
+                }人です`}</span>
+              </p>
             )}
           </div>
-        </SFrontFooter>
-      </SFront>
-      <SBack ref={planBackRef} onClick={() => setIsFront((prev) => !prev)}>
-        <SBackWrapper
-          isFront={isFront}
-          chipTexts={chipTexts}
-          desc={desc}
-          limit={limit}
-          participants={participants}
-        >
-          <SBackContents
-            chipTexts={chipTexts}
-            desc={desc}
-            readMore={readMore}
-            contentsHeight={contentsHeight}
-            ref={planBackContentsRef}
-          >
+          <div>
             <div>
-              <h2>{title}</h2>
+              {(isParticipated(participants) ||
+                organizerId === userData._id) && (
+                <Tooltip title='チャットに遷移'>
+                  <IconButton
+                    style={{ padding: '0' }}
+                    onClick={(e) => transitionTalkRoom(e)}
+                  >
+                    <ChatIcon color='success' style={{ fontSize: '2rem' }} />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              {organizerId === userData._id ? (
+                <Tooltip title='プランを編集'>
+                  <span>
+                    <IconButton
+                      style={{ padding: '0' }}
+                      disabled={
+                        (limit > 0 && limit <= participants.length) ||
+                        deadLine === ''
+                          ? isClosedPlanByDefaultDeadLine(date)
+                          : isClosedPlanByDeadLine(deadLine)
+                      }
+                      onClick={() =>
+                        router.push({
+                          pathname: '/EditPlan',
+                          query: { planId },
+                        })
+                      }
+                    >
+                      <ModeEditIcon
+                        color='secondary'
+                        style={{ fontSize: '2rem' }}
+                      />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              ) : isParticipated(participants) ? (
+                <Tooltip title='プランから抜ける'>
+                  <IconButton
+                    style={{ padding: '0' }}
+                    onClick={(e) => leavePlan(e)}
+                  >
+                    <GroupRemoveIcon
+                      color='error'
+                      style={{ fontSize: '2rem' }}
+                    />
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                <Tooltip title='プランに参加'>
+                  <span>
+                    <IconButton
+                      color='primary'
+                      style={{ padding: '0' }}
+                      disabled={
+                        (limit > 0 && limit <= participants.length) ||
+                        deadLine === ''
+                          ? isClosedPlanByDefaultDeadLine(date)
+                          : isClosedPlanByDeadLine(deadLine)
+                      }
+                      onClick={(e) => participationPlan(e)}
+                    >
+                      <GroupAddIcon style={{ fontSize: '2rem' }} />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              )}
+              {isLiked() ? (
+                <IconButton
+                  style={{ padding: '0' }}
+                  color='error'
+                  onClick={(e) => likePlan(e)}
+                >
+                  <FavoriteIcon style={{ fontSize: '2rem' }} />
+                </IconButton>
+              ) : (
+                <IconButton
+                  style={{ padding: '0' }}
+                  color='error'
+                  onClick={(e) => likePlan(e)}
+                >
+                  <FavoriteBorderIcon style={{ fontSize: '2rem' }} />
+                </IconButton>
+              )}
+            </div>
+            {(desc || chipTexts.length > 0) && (
+              <div>
+                <Tooltip title='もっと見る'>
+                  <IconButton
+                    style={{ padding: '0' }}
+                    onClick={() => setIsExpanded(!isExpanded)}
+                  >
+                    <ExpandMoreIcon style={{ fontSize: '36px' }} />
+                  </IconButton>
+                </Tooltip>
+              </div>
+            )}
+          </div>
+        </SPlanBoxFooter>
+        {(desc || chipTexts.length > 0) && (
+          <Collapse in={isExpanded} timeout='auto' unmountOnExit>
+            <SExpandContainer isExpanded={isExpanded}>
               <p
                 dangerouslySetInnerHTML={{
                   __html: desc && convertToDispDesc(desc),
                 }}
               ></p>
-              <div>
+              <SChipTexts chipTexts={chipTexts}>
                 {chipTexts.map((chipText) => (
                   <Tooltip key={chipText} title='タグで検索'>
                     <Chip
@@ -653,64 +719,11 @@ const PlanBox = ({
                     />
                   </Tooltip>
                 ))}
-              </div>
-            </div>
-            <div onClick={(e) => readMoreContents(e)}>
-              <Tooltip title='もっと見る'>
-                <IconButton>
-                  <ExpandMoreIcon fontSize='large' />
-                </IconButton>
-              </Tooltip>
-            </div>
-          </SBackContents>
-          <div>
-            {organizerId === userData._id ? (
-              <CommonButton
-                color='secondary'
-                startIcon={<ModeEditIcon />}
-                text='編集'
-                onClick={() =>
-                  router.push({ pathname: '/EditPlan', query: { planId } })
-                }
-              />
-            ) : isParticipated(participants) ? (
-              <CommonButton
-                startIcon={<GroupRemoveIcon />}
-                text='降りる'
-                onClick={(e) => leavePlan(e)}
-                color='error'
-              />
-            ) : (
-              <CommonButton
-                startIcon={<GroupAddIcon />}
-                onClick={(e) => participationPlan(e)}
-                text='参加する'
-                disabled={
-                  (limit > 0 && limit <= participants.length) || deadLine === ''
-                    ? isClosedPlanByDefaultDeadLine(date)
-                    : isClosedPlanByDeadLine(deadLine)
-                }
-              />
-            )}
-            <CommonButton
-              color='success'
-              disabled={
-                !isParticipated(participants) && organizerId !== userData._id
-              }
-              startIcon={<ChatIcon />}
-              onClick={(e) => transitionTalkRoom(e)}
-              text='チャット'
-            />
-          </div>
-          <h3>
-            {limit === 0
-              ? `参加者: ${participants.length}人`
-              : participants.length === limit
-              ? '参加人数が上限に達しました'
-              : `募集人数は、残り${limit - participants.length}人です`}
-          </h3>
-        </SBackWrapper>
-      </SBack>
+              </SChipTexts>
+            </SExpandContainer>
+          </Collapse>
+        )}
+      </SPlanBox>
       <CommonDialog
         dialogTitle='いいねした人を表示'
         isOpen={likersListIsOpen}
@@ -832,244 +845,162 @@ const PlanBox = ({
         secondaryText='このプランを削除すると、チャット履歴も削除されます。'
         onClick={(e) => deletePlan(e)}
       />
-    </SPlanBox>
+    </>
   );
 };
 
 const SPlanBox = styled.div`
-  --box-shadow-right: 9px;
-  --box-shadow-bottom: 8px;
   opacity: ${(props) => (props.isLoading ? 0 : 1)};
   transform: ${(props) => (props.isLoading ? 'translateY(30px)' : 'none')};
-  font-family: 'Noto Sans JP', sans-serif;
-  font-family: 'Noto Serif JP', serif;
-  font-family: 'Poppins', sans-serif;
-  margin-top: 2rem;
-  position: relative;
-  width: 300px;
-  height: ${(props) =>
-    !props.isFront && props.readMore
-      ? `calc(152px + ${props.contentsHeight}px)`
-      : '340px'};
-  transition: height 0.3s ease-in-out, opacity 0.5s, transform 0.5s;
   overflow: hidden;
-
-  > div {
-    box-shadow: 9px 8px 14px -10px #777777;
-    width: calc(100% - var(--box-shadow-right));
-    height: calc(100% - var(--box-shadow-bottom));
-    background-color: #fff;
-    border-radius: 10px;
-    transition: all 0.4s cubic-bezier(0.12, 0, 0.39, 0);
-    position: absolute;
-    top: 0;
-    left: 0;
-    &:nth-of-type(1) {
-    }
-    &:nth-of-type(2) {
-      z-index: 2;
-      transform: ${(props) => (props.isFront ? 'translateY(-110%)' : 'none')};
-      pointer-events: ${(props) => (props.isFront ? 'none' : 'auto')};
-      height: ${(props) => props.readMore && 'auto'};
-    }
-  }
-`;
-
-const SwiperBox = styled(Swiper)`
-  width: 100%;
-  height: 100%;
-`;
-
-const SFront = styled.div`
+  width: 95%;
+  max-width: 340px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 9px 8px 14px -10px #777777;
+`;
+const SwiperBox = styled(Swiper)`
+  width: 100%;
+  aspect-ratio: 1.4/1;
 `;
 
-const SFrontHeader = styled.div`
-  padding: 0.3rem 0.4rem;
-  height: 13%;
+const SPlanBoxHeader = styled.div`
+  padding: 0.35rem 0.4rem;
+  width: 100%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+
   > div {
-    height: 100%;
     &:nth-of-type(1) {
-      width: 100%;
       display: flex;
       align-items: center;
-      column-gap: 1.2rem;
-      > a div {
-        width: 2.4rem;
-        height: 2.4rem;
-        img {
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          object-fit: cover;
-        }
-      }
+      justify-content: flex-start;
+      column-gap: 0.9rem;
+      width: 88%;
 
       > div {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: center;
-        width: 75%;
-        overflow-x: hidden;
-        h3 {
-          font-size: 0.8rem;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-        p {
+        &:nth-of-type(1) {
+          width: 14%;
+          aspect-ratio: 1/1;
           cursor: pointer;
-          font-size: 0.6rem;
-          color: #8f8e8e;
+
+          > img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+          }
+        }
+
+        &:nth-of-type(2) {
+          width: 78%;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: center;
+          column-gap: 0.2rem;
+
+          > h3 {
+            font-size: 1rem;
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+          }
+
+          > h4 {
+            font-size: 0.8rem;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            color: #bfbcbc;
+            cursor: pointer;
+          }
         }
       }
     }
-    &:nth-of-type(2) {
-    }
   }
 `;
 
-const SFrontMedia = styled.div`
-  height: 70%;
-  > img {
-    width: 100%;
-    height: 100%;
-  }
-`;
-
-const SFrontFooter = styled.div`
-  height: 13%;
+const SPlanBoxFooter = styled.div`
   width: 100%;
-  padding: 0 0.5rem;
+  padding: 0.3rem 0.4rem;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  & div {
+  align-items: flex-start;
+  > div {
     &:nth-of-type(1) {
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: flex-start;
-      width: 70%;
-      p {
-        width: 100%;
-        font-size: 0.8rem;
+      row-gap: 0.2rem;
+      width: 65%;
+
+      > p {
         display: flex;
-        column-gap: 0.4rem;
         align-items: center;
-        span {
+        justify-content: flex-start;
+        column-gap: 0.25rem;
+        width: 100%;
+        white-space: nowrap;
+        font-size: 0.95rem;
+        > span {
           &:nth-of-type(1) {
-            font-weight: 600;
+            font-weight: bold;
           }
           &:nth-of-type(2) {
-            overflow-x: hidden;
+            overflow: hidden;
             white-space: nowrap;
-            width: 65%;
+            text-overflow: ellipsis;
           }
         }
       }
     }
+
     &:nth-of-type(2) {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-end;
+      row-gap: 0.2rem;
+
+      > div {
+        &:nth-of-type(1) {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          column-gap: 0.6rem;
+        }
+        &:nth-of-type(2) {
+          margin-right: -0.4rem;
+          transform: ${(props) =>
+            props.isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'};
+          transition: transform 0.3s;
+        }
+      }
     }
   }
 `;
 
-const SBack = styled.div`
-  border: 3px solid skyblue;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-`;
-
-const SBackWrapper = styled.div`
-  width: 100%;
-  padding: 1.2rem 1rem 0.5rem 1rem;
-  background-color: rgba(255, 255, 255, 0.8);
+const SExpandContainer = styled.div`
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.6rem;
   display: flex;
   flex-direction: column;
-  row-gap: 1.4rem;
-  transform-style: preserve-3d;
-  transition: transform 0.4s, opacity 0.4s;
-  transition-delay: 0.4s;
-  transform: perspective(2000px)
-    ${(props) => (props.isFront ? 'translateZ(-1000px)' : 'none')};
-  opacity: ${(props) => (props.isFront ? 0 : 1)};
-
-  > div {
-    &:nth-of-type(1) {
-    }
-
-    &:nth-of-type(2) {
-      display: flex;
-      align-items: center;
-      column-gap: 1rem;
-      justify-content: center;
-    }
-  }
-
-  > h3 {
-    text-align: center;
-    font-size: 1.1rem;
-    font-weight: 550;
-    color: ${(props) =>
-      props.limit > 0 && props.limit <= props.participants.length
-        ? 'red'
-        : 'black'};
-  }
+  row-gap: 0.8rem;
+  transition: transform 0.2s;
+  transform: ${(props) =>
+    props.isExpanded === 'translateY(0)' && 'translateY(-100%)'};
 `;
 
-const SBackContents = styled.div`
-  width: 100%;
-  min-height: 11rem;
-  overflow: hidden;
-  height: ${(props) =>
-    props.readMore ? `${props.contentsHeight}px` : '11rem'};
-  transition: height 0.3s ease-in-out;
-  position: relative;
-
-  > div {
-    display: flex;
-    flex-direction: column;
-    row-gap: 1rem;
-    &:nth-of-type(1) {
-      opacity: ${(props) =>
-        props.contentsHeight > 176 && !props.readMore ? '.6' : '1'};
-      > h2 {
-        font-size: 1.3rem;
-        word-break: break-all;
-      }
-
-      > p {
-        font-size: 0.8rem;
-        word-break: break-all;
-        color: #373636;
-        display: ${(props) => (props.desc === '' ? 'none' : 'block')};
-      }
-      > div {
-        column-gap: 0.5rem;
-        display: flex;
-        flex-wrap: wrap;
-        row-gap: 0.4rem;
-        display: ${(props) => props.chipTexts.length === 0 && 'none'};
-      }
-    }
-    &:nth-of-type(2) {
-      position: absolute;
-      right: 0;
-      bottom: -15px;
-      display: ${(props) => (props.contentsHeight > 176 ? 'block' : 'none')};
-      transform: ${(props) => (props.readMore ? 'rotate(180deg)' : 'none')};
-      transition: transform 0.3s;
-    }
-  }
+const SChipTexts = styled.div`
+  column-gap: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 0.4rem;
+  display: ${(props) => props.chipTexts.length === 0 && 'none'};
 `;
 
 export default PlanBox;

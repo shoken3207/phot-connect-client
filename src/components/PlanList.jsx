@@ -5,12 +5,12 @@ import { MAX_LOAD_PLAN_COUNT } from '../const';
 import PlanBox from './PlanBox';
 const GridList = styled.div`
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
-  gap: 1rem;
-  width: 95%;
-  margin: 0 auto;
-  margin-bottom: 2.5rem;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1.6rem;
+  width: 100%;
+  margin: 1.5rem auto;
 `;
 
 const PlanList = memo(
@@ -73,7 +73,7 @@ const PlanList = memo(
 export default PlanList;
 
 const SPaginatonWrapper = styled.div`
-  margin: 2rem 0;
+  margin: 1.4rem 0;
   width: 100%;
   display: flex;
   justify-content: center;

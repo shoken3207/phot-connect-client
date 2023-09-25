@@ -46,104 +46,102 @@ const PersonList = memo(
 
     return (
       <SCommonList>
-        <Box sx={{ width: '100%', maxWidth: 550, bgcolor: 'background.paper' }}>
-          <List>
-            {listData.map((itemData) =>
-              withActionButton ? (
-                <CommonListItem
-                  id={itemData.id}
-                  listData={listData}
-                  setListData={setListData}
-                  iconImage={itemData.iconImage}
-                  primaryText={itemData.primaryText}
-                  secondaryText={itemData.secondaryText}
-                  badgeContent={itemData.badgeContent}
-                  isPlanTalkRoom={itemData.isPlanTalkRoom}
-                  isGroupTalkRoom={itemData.isGroupTalkRoom}
-                  talkRoomMembers={itemData.talkRoomMembers}
-                  actionButton={
-                    friendAdd ? (
+        <List>
+          {listData.map((itemData) =>
+            withActionButton ? (
+              <CommonListItem
+                id={itemData.id}
+                listData={listData}
+                setListData={setListData}
+                iconImage={itemData.iconImage}
+                primaryText={itemData.primaryText}
+                secondaryText={itemData.secondaryText}
+                badgeContent={itemData.badgeContent}
+                isPlanTalkRoom={itemData.isPlanTalkRoom}
+                isGroupTalkRoom={itemData.isGroupTalkRoom}
+                talkRoomMembers={itemData.talkRoomMembers}
+                actionButton={
+                  friendAdd ? (
+                    <Button
+                      size='large'
+                      variant='contained'
+                      disabled={
+                        friendAdd &&
+                        (isFriend(itemData.id) || itemData.id === userData._id)
+                          ? true
+                          : false
+                      }
+                      onClick={(e) => onClick(e, itemData.id)}
+                    >
+                      <GroupAddIcon />
+                    </Button>
+                  ) : except || accept ? (
+                    <Button
+                      size='large'
+                      variant='contained'
+                      color={except ? 'error' : 'primary'}
+                      onClick={(e) => onClick(e, itemData.id)}
+                    >
+                      <GroupRemoveIcon />
+                    </Button>
+                  ) : removeReaction ? (
+                    itemData.id === userData._id && (
                       <Button
                         size='large'
                         variant='contained'
-                        disabled={
-                          friendAdd &&
-                          (isFriend(itemData.id) ||
-                            itemData.id === userData._id)
-                            ? true
-                            : false
-                        }
+                        color='error'
                         onClick={(e) => onClick(e, itemData.id)}
                       >
-                        <GroupAddIcon />
+                        <DeleteIcon />
                       </Button>
-                    ) : except || accept ? (
-                      <Button
-                        size='large'
-                        variant='contained'
-                        color={except ? 'error' : 'primary'}
-                        onClick={(e) => onClick(e, itemData.id)}
-                      >
-                        <GroupRemoveIcon />
-                      </Button>
-                    ) : removeReaction ? (
-                      itemData.id === userData._id && (
-                        <Button
-                          size='large'
-                          variant='contained'
-                          color='error'
-                          onClick={(e) => onClick(e, itemData.id)}
-                        >
-                          <DeleteIcon />
-                        </Button>
-                      )
-                    ) : (
-                      selectUsers && (
-                        <Checkbox
-                          disabled={
-                            (blackUsers && isBlackUser(itemData.id)) ||
-                            (participants && isParticipant(itemData.id)) ||
-                            (invitees && isInvitee(itemData.id))
-                          }
-                          checked={selectUsers.includes(itemData.id)}
-                          onChange={(e) => onChange(itemData.id)}
-                        />
-                      )
                     )
-                  }
-                  chat={chat}
-                  href={`${pagePath}/${itemData.id}`}
-                  key={itemData.id}
-                />
-              ) : (
-                <CommonListItem
-                  id={itemData.id}
-                  listData={listData}
-                  setListData={setListData}
-                  iconImage={itemData.iconImage}
-                  primaryText={itemData.primaryText}
-                  secondaryText={itemData.secondaryText}
-                  badgeContent={itemData.badgeContent}
-                  isPlanTalkRoom={itemData.isPlanTalkRoom}
-                  isGroupTalkRoom={itemData.isGroupTalkRoom}
-                  talkRoomMembers={itemData.talkRoomMembers}
-                  chat={chat}
-                  href={`${pagePath}/${itemData.id}`}
-                  key={itemData.id}
-                />
-              )
-            )}
-          </List>
-        </Box>
+                  ) : (
+                    selectUsers && (
+                      <Checkbox
+                        disabled={
+                          (blackUsers && isBlackUser(itemData.id)) ||
+                          (participants && isParticipant(itemData.id)) ||
+                          (invitees && isInvitee(itemData.id))
+                        }
+                        checked={selectUsers.includes(itemData.id)}
+                        onChange={(e) => onChange(itemData.id)}
+                      />
+                    )
+                  )
+                }
+                chat={chat}
+                href={`${pagePath}/${itemData.id}`}
+                key={itemData.id}
+              />
+            ) : (
+              <CommonListItem
+                id={itemData.id}
+                listData={listData}
+                setListData={setListData}
+                iconImage={itemData.iconImage}
+                primaryText={itemData.primaryText}
+                secondaryText={itemData.secondaryText}
+                badgeContent={itemData.badgeContent}
+                isPlanTalkRoom={itemData.isPlanTalkRoom}
+                isGroupTalkRoom={itemData.isGroupTalkRoom}
+                talkRoomMembers={itemData.talkRoomMembers}
+                chat={chat}
+                href={`${pagePath}/${itemData.id}`}
+                key={itemData.id}
+              />
+            )
+          )}
+        </List>
       </SCommonList>
     );
   }
 );
 
 const SCommonList = styled.div`
-  /* max-height: 88vh;
+  width: 100%;
+  max-height: 88vh;
   height: auto;
-  overflow-y: scroll; */
+  overflow-y: scroll;
 `;
 
 export default PersonList;

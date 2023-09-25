@@ -7,8 +7,6 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useUserData } from '../provider/UserDataProvider';
 import useUserFunc from '../hooks/useUserFunc';
-import { Button } from '@mui/material';
-import GoogleIcon from '@mui/icons-material/Google';
 import EmailIcon from '@mui/icons-material/Email';
 import Head from 'next/head';
 
@@ -51,38 +49,34 @@ const Home = () => {
         <Head>
           <title>auth</title>
         </Head>
-        <SLoginButtonGroup>
-          <Button
-            style={{ textTransform: 'none' }}
-            variant='contained'
-            color='success'
-            onClick={() => signInWithGoogle()}
-            startIcon={<GoogleIcon fontSize='large' />}
-            fullWidth
-          >
-            Sign in with Google
-          </Button>
-          <Button
-            style={{ textTransform: 'none' }}
-            variant='contained'
-            color='secondary'
-            startIcon={<EmailIcon fontSize='large' />}
-            onClick={() => router.push('/SignUp')}
-            fullWidth
-          >
-            Sign up with Email
-          </Button>
-          <Button
-            style={{ textTransform: 'none' }}
-            variant='contained'
-            color='primary'
-            startIcon={<EmailIcon fontSize='large' />}
-            onClick={() => router.push('/SignIn')}
-            fullWidth
-          >
-            Sign in with Email
-          </Button>
-        </SLoginButtonGroup>
+        <SBox>
+          <SLogo>
+            <img src='/images/logo2.png' alt='' />
+          </SLogo>
+          <SDesc>
+            <h2>撮影を通じて繋がろう</h2>
+            <p>
+              <span>
+                このアプリでは、自分の興味のある撮影プランに参加することが出来ます。
+              </span>
+
+              <span>
+                趣味仲間を見つけ、撮影趣味をより、充実させましょう！！
+              </span>
+            </p>
+          </SDesc>
+          <SButtonGroup>
+            <SGoogleButton onClick={() => signInWithGoogle()}>
+              <img src='/images/google_button.png' alt='' />
+            </SGoogleButton>
+            <SLoginButton onClick={() => router.push('/SignIn')}>
+              <div>
+                <EmailIcon sx={{ color: '#00c6b8' }} />
+              </div>
+              <span>Sign in with Email</span>
+            </SLoginButton>
+          </SButtonGroup>
+        </SBox>
       </SContainer>
     </div>
   );
@@ -92,25 +86,109 @@ export default Home;
 
 const SContainer = styled.div`
   width: 100%;
-  height: calc(100vh - 90px);
-  background-image: linear-gradient(
-    90deg,
-    rgba(226, 207, 255, 1),
-    rgba(251, 253, 191, 1)
-  );
-  position: relative;
+  height: 100vh;
+  background-image: url('/images/background.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
 
-  div {
-    position: absolute;
-    top: 4rem;
-    right: 1.5rem;
+const SBox = styled.div`
+  width: 85%;
+  max-width: 800px;
+  padding: 1.4rem 1.5rem;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.6rem;
+`;
+
+const SDesc = styled.div`
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.6rem;
+
+  > h2 {
+    color: #6a3d00;
+    font-size: 1.5rem;
+    font-weight: 550;
+    text-align: center;
+  }
+
+  > p {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.7rem;
+    font-size: 1rem;
+    text-align: center;
+    color: #8c98aa;
   }
 `;
 
-const SLoginButtonGroup = styled.div`
-  width: 80%;
-  max-width: 300px;
+const SButtonGroup = styled.div`
   display: flex;
   flex-direction: column;
   row-gap: 1rem;
+  align-items: center;
+  margin-top: 1.4rem;
+`;
+
+const SLoginButton = styled.div`
+  width: 70%;
+  max-width: 240px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  column-gap: 0.6rem;
+  padding: 0.15rem;
+  background-color: #00c6b8;
+  box-shadow: 4px 4px 14px -6px #777777;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  &:hover {
+    opacity: 0.7;
+  }
+  > div {
+    width: 20%;
+    aspect-ratio: 1 / 1;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  > span {
+    font-weight: bold;
+    color: white;
+  }
+`;
+
+const SGoogleButton = styled.div`
+  width: 70%;
+  max-width: 240px;
+  cursor: pointer;
+  transition: all 0.3s;
+  &:hover {
+    opacity: 0.7;
+  }
+  > img {
+    width: 100%;
+    height: 100%;
+  }
+`;
+
+const SLogo = styled.div`
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  > img {
+    width: 40%;
+    max-width: 180px;
+    aspect-ratio: 1 / 1;
+  }
 `;
